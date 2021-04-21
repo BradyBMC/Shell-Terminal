@@ -29,8 +29,8 @@ const string& inode_state::prompt() const {
   return prompt_; 
 }
 
-void inode_state::prompt(const string& p) {
-  prompt_ = p;
+void inode_state::prompt(const string& new_prompt) {
+  prompt_ = new_prompt;
 }
 
 ostream& operator<< (ostream& out, const inode_state& state) {
