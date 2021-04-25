@@ -21,6 +21,7 @@ class base_file;
 class plain_file;
 class directory;
 using inode_ptr = shared_ptr<inode>;
+using inode_wk_ptr = weak_ptr<inode>;
 using base_file_ptr = shared_ptr<base_file>;
 ostream& operator<< (ostream&, file_type);
 
@@ -35,7 +36,8 @@ class inode_state {
    friend ostream& operator<< (ostream& out, const inode_state&);
    private:
       inode_ptr root {nullptr};
-      inode_ptr cwd {nullptr};
+      inode_wk_ptr cwd;
+      inode_wk_ptr parent;
       string prompt_ {"% "};
    public:
       inode_state (const inode_state&) = delete; // copy ctor
@@ -64,9 +66,11 @@ class inode {
       static size_t next_inode_nr;
       size_t inode_nr;
       base_file_ptr contents;
+      string name {""};
    public:
       inode (file_type);
       size_t get_inode_nr() const;
+      void set_name(string new_name) {name = new_name;}
 };
 
 
@@ -94,6 +98,7 @@ class base_file {
       virtual void remove (const string& filename);
       virtual inode_ptr mkdir (const string& dirname);
       virtual inode_ptr mkfile (const string& filename);
+      virtual void setup_dir(inode_ptr, inode_ptr)=0;
 };
 
 // class plain_file -
@@ -116,6 +121,7 @@ class plain_file: public base_file {
       virtual size_t size() const override;
       virtual const wordvec& readfile() const override;
       virtual void writefile (const wordvec& newdata) override;
+      virtual void setup_dir (inode_ptr, inode_ptr) override;
 };
 
 // class directory -
@@ -140,6 +146,7 @@ class directory: public base_file {
    private:
       // Must be a map, not unordered_map, so printing is lexicographic
       map<string,inode_ptr> dirents;
+      map<string,inode_wk_ptr> wk_dirents;
       virtual const string& error_file_type() const override {
          static const string result = "directory";
          return result;
@@ -149,6 +156,8 @@ class directory: public base_file {
       virtual void remove (const string& filename) override;
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
+      virtual void setup_dir (inode_ptr, inode_ptr) override;
+      
 };
 
 #endif

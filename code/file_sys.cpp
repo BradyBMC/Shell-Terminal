@@ -21,6 +21,11 @@ ostream& operator<< (ostream& out, file_type type) {
 }
 
 inode_state::inode_state() {
+   root = make_shared<inode>(file_type::DIRECTORY_TYPE);
+   cwd = root;
+   parent = root;
+   root->setup_dir(cwd,parent);
+   root->set_name("/");
    DEBUGF ('i', "root = " << root << ", cwd = " << cwd
           << ", prompt = \"" << prompt() << "\"");
 }
@@ -114,7 +119,14 @@ inode_ptr directory::mkdir (const string& dirname) {
 }
 
 inode_ptr directory::mkfile (const string& filename) {
+   //inode_ptr new_file = make_shared<inode>(file_type:;PLAIN_TYPE);
+   //file->set_name(filename);
    DEBUGF ('i', filename);
-   return nullptr;
+   //return file;
+}
+
+void directory::setup_dir(inode_wk_ptr cwd, inode_wk_ptr parent) {
+  wk_dirents.insert(pair<string, inode_wk_ptr>(".", cwd);
+  wk_dirents.insert(pair<string, inode_wk_ptr>("..", parent);
 }
 
