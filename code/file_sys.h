@@ -20,8 +20,13 @@ class inode;
 class base_file;
 class plain_file;
 class directory;
+<<<<<<< HEAD
 using inode_ptr = shared_ptr<inode>;
 using inode_wk_ptr = weak_ptr<inode>;
+=======
+using inode_wk_ptr = weak_ptr<inode>;
+using inode_ptr = shared_ptr<inode>;
+>>>>>>> origin/main
 using base_file_ptr = shared_ptr<base_file>;
 ostream& operator<< (ostream&, file_type);
 
@@ -36,8 +41,12 @@ class inode_state {
    friend ostream& operator<< (ostream& out, const inode_state&);
    private:
       inode_ptr root {nullptr};
+<<<<<<< HEAD
       inode_wk_ptr cwd;
       inode_wk_ptr parent;
+=======
+      inode_ptr cwd {nullptr};
+>>>>>>> origin/main
       string prompt_ {"% "};
    public:
       inode_state (const inode_state&) = delete; // copy ctor
@@ -98,7 +107,7 @@ class base_file {
       virtual void remove (const string& filename);
       virtual inode_ptr mkdir (const string& dirname);
       virtual inode_ptr mkfile (const string& filename);
-      virtual void setup_dir(inode_ptr, inode_ptr)=0;
+      virtual void setup_dir(const inode_ptr& cwd, inode_ptr& parent)=0;
 };
 
 // class plain_file -
@@ -121,7 +130,6 @@ class plain_file: public base_file {
       virtual size_t size() const override;
       virtual const wordvec& readfile() const override;
       virtual void writefile (const wordvec& newdata) override;
-      virtual void setup_dir (inode_ptr, inode_ptr) override;
 };
 
 // class directory -
@@ -156,8 +164,7 @@ class directory: public base_file {
       virtual void remove (const string& filename) override;
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
-      virtual void setup_dir (inode_ptr, inode_ptr) override;
-      
+      virtual void setup_dir (const inode_ptr& cwd, inode_ptr& parent) override;
 };
 
 #endif
