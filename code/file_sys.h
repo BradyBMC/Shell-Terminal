@@ -20,6 +20,7 @@ class inode;
 class base_file;
 class plain_file;
 class directory;
+using inode_wk_ptr = weak_ptr<inode>;
 using inode_ptr = shared_ptr<inode>;
 using base_file_ptr = shared_ptr<base_file>;
 ostream& operator<< (ostream&, file_type);
@@ -64,6 +65,7 @@ class inode {
       static size_t next_inode_nr;
       size_t inode_nr;
       base_file_ptr contents;
+      string name {};
    public:
       inode (file_type);
       size_t get_inode_nr() const;
@@ -94,6 +96,7 @@ class base_file {
       virtual void remove (const string& filename);
       virtual inode_ptr mkdir (const string& dirname);
       virtual inode_ptr mkfile (const string& filename);
+      virtual void setup_dir(const inode_ptr& cwd, inode_ptr& parent);
 };
 
 // class plain_file -
@@ -140,6 +143,7 @@ class directory: public base_file {
    private:
       // Must be a map, not unordered_map, so printing is lexicographic
       map<string,inode_ptr> dirents;
+      map<string,inode_wk_ptr> wk_dirents;
       virtual const string& error_file_type() const override {
          static const string result = "directory";
          return result;
@@ -149,6 +153,7 @@ class directory: public base_file {
       virtual void remove (const string& filename) override;
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
+      virtual void setup_dir (const inode_ptr& cwd, inode_ptr& parent) override;
 };
 
 #endif

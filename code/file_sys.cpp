@@ -23,6 +23,17 @@ ostream& operator<< (ostream& out, file_type type) {
 inode_state::inode_state() {
    DEBUGF ('i', "root = " << root << ", cwd = " << cwd
           << ", prompt = \"" << prompt() << "\"");
+   /*
+   root = make_shared<inode>(file_type::DIRECTORY_TYPE);
+   cwd = root;
+   inode_wk_ptr 
+   wk_dirents.isert(pair(<string, inode_wk_ptr(".",*/ 
+
+   inode rut = inode(file_type::DIRECTORY_TYPE);
+   root = make_shared<inode>(rut);
+   root->name = "/";
+   root->contents->setup_dir(cwd, root);
+   cwd = root;
 }
 
 const string& inode_state::prompt() const { return prompt_; }
@@ -76,6 +87,10 @@ inode_ptr base_file::mkfile (const string&) {
    throw file_error ("is a " + error_file_type());
 }
 
+void base_file::setup_dir (const inode_ptr&, inode_ptr&) {
+   throw file_error ("is a " + error_file_type());
+}
+
 
 size_t plain_file::size() const {
    size_t size {0};
@@ -112,3 +127,9 @@ inode_ptr directory::mkfile (const string& filename) {
    return nullptr;
 }
 
+void directory::setup_dir (const inode_ptr& cwd, inode_ptr& parent ) {
+  inode_wk_ptr current_dir = cwd;
+  inode_wk_ptr parent_dir = parent;
+  wk_dirents.insert(pair<string, inode_wk_ptr>(".", current_dir));
+  wk_dirents.insert(pair<string, inode_wk_ptr>("..", parent_dir));
+}
