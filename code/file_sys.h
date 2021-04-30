@@ -75,6 +75,7 @@ class inode {
       void set_name(string);
       map<string, inode_wk_ptr>get_higher();
       map<string, inode_ptr>get_lower();
+      void set_lower(const map<string, inode_ptr>& child);
 };
 
 
@@ -105,7 +106,7 @@ class base_file {
       virtual void setup_dir(const inode_ptr& cwd, inode_ptr& parent);
       virtual map<string,inode_ptr> get_children();
       virtual map<string,inode_wk_ptr> get_parent();
-
+      virtual void set_children(const map<string,inode_ptr>& child);
 };
 
 // class plain_file -
@@ -165,6 +166,8 @@ class directory: public base_file {
       virtual void setup_dir (const inode_ptr& cwd, inode_ptr& parent) override;
       virtual map<string,inode_ptr> get_children() override;
       virtual map<string,inode_wk_ptr> get_parent() override;
+      virtual void set_children(const map<string,inode_ptr>& child) override;
+
 };
 
 #endif

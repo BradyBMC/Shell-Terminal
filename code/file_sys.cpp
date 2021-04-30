@@ -33,19 +33,31 @@ inode_state::inode_state() {
 }
 
 void inode_state::make_directory(const wordvec& dirname) {
-  inode_ptr temp = directory_search(dirname, cwd);
-  if(temp == nullptr) {
+  inode_ptr path = directory_search(dirname, cwd);
+  if(path == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
+    return;
   }
-  map<string, inode_wk_ptr> parent = temp->get_higher();
-  map<string, inode_ptr> children = temp->get_lower();
-  inode_ptr n_dir = temp->contents->mkdir(dirname[dirname.size() - 1]);
-  n_dir->contents->setup_dir(n_dir, temp);
+  map<string, inode_wk_ptr> parent = path->get_higher();
+  map<string, inode_ptr> children = path->get_lower();
+  cout << children.size() << endl;
+  inode_ptr n_dir = path->contents->mkdir(dirname[dirname.size() - 1]);
+  cout << n_dir->name << endl;
+  n_dir->contents->setup_dir(n_dir, cwd);
+  children.insert(pair<string, inode_ptr>(n_dir->name, n_dir));
+  cwd->set_lower(children);
+  cout << "Task::Completed" << endl;
+  cout << "size :: " << cwd->get_lower().size() << endl;
+  for(auto const &pair:children) {
+    cout << pair.first << " " << pair.second << endl;
+  }
 }
 
 inode_ptr inode_state::directory_search(const wordvec& input,
                                                  inode_ptr curr){
+  //Does not catch if directory already has name
   for(int i = 0;i < static_cast<int>(input.size()) - 1;i++) {
+    cout << "runs " << endl;
     map<string, inode_wk_ptr> parent = curr->get_higher();
     map<string,inode_ptr> child = curr->get_lower();
     string name = input[i];
@@ -56,8 +68,7 @@ inode_ptr inode_state::directory_search(const wordvec& input,
       it = child.find(name);
       //Illegal path
       if(it == child.end()) {
-        curr = nullptr;
-        break;
+        return nullptr;
       }
       curr = child[name];
     }
@@ -99,6 +110,10 @@ map<string, inode_ptr> inode::get_lower() {
   return contents->get_children();
 }
 
+void inode::set_lower(const map<string, inode_ptr>& child) {
+  contents->set_children(child);
+}
+
 void inode::set_name(string input) {
   name = input;
 }
@@ -138,6 +153,10 @@ map<string,inode_ptr> base_file::get_children() {
 
 map<string,inode_wk_ptr> base_file::get_parent() {
   throw file_error ("is a "+ error_file_type());
+}
+
+void base_file::set_children(const map<string,inode_ptr>&) {
+  throw file_error("is a " + error_file_type());
 }
 
 
@@ -191,4 +210,8 @@ map<string,inode_ptr> directory::get_children() {
 
 map<string,inode_wk_ptr> directory::get_parent() {
   return wk_dirents;
+}
+
+void directory::set_children(const map<string,inode_ptr>& child) {
+  dirents = child;
 }
