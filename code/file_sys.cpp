@@ -39,15 +39,24 @@ void inode_state::make_directory(const string& dirname) {
 }
 
 inode_ptr inode_state::directory_search(const wordvec& input, inode_ptr curr) {
-  map<string, inode_wk_ptr> parent = curr->get_higher();
-  map<string,inode_ptr> child = curr->get_lower();
   for(int i = 0;i < static_cast<int>(input.size());i++) {
+    map<string, inode_wk_ptr> parent = curr->get_higher();
+    map<string,inode_ptr> child = curr->get_lower();
     string name = input[i];
-    
+    if(".." == name || "." == name) {
+      curr = parent[name].lock();
+    } else {
+      map<string,inode_ptr>::iterator it;
+      it = child.find(name);
+      //Illegal path
+      if(it == child.end()) {
+        curr = nullptr;
+        break;
+      }
+      curr = child[name];
+    }
   }
-  cout << input << endl;
-  curr = nullptr;
-  return nullptr;
+  return curr;
 }
 
 const string& inode_state::prompt() const { return prompt_; }
