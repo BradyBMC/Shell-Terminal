@@ -45,12 +45,34 @@ void inode_state::make_directory(const wordvec& dirname) {
   cout << n_dir->name << endl;
   n_dir->contents->setup_dir(n_dir, cwd);
   children.insert(pair<string, inode_ptr>(n_dir->name, n_dir));
-  cwd->set_lower(children);
+  path->set_lower(children);
   cout << "Task::Completed" << endl;
   cout << "size :: " << cwd->get_lower().size() << endl;
   for(auto const &pair:children) {
     cout << pair.first << " " << pair.second << endl;
   }
+}
+
+void inode_state::change_directory(const wordvec& dirname) {
+  inode_ptr curr = cwd;
+  for(int i = 0;i < static_cast<int>(dirname.size());i++) {
+    map<string, inode_wk_ptr> parent = curr->get_higher();
+    map<string,inode_ptr> child = curr->get_lower();
+    string name = dirname[i];
+    if(".." == name || "." == name) {
+      curr = parent[name].lock();
+    } else {
+      map<string,inode_ptr>::iterator it;
+      it = child.find(name);
+      //Illegal path
+      if(it == child.end()) {
+        cout << "ILLEGAL DIRECTORY PATH" << endl;
+        return;
+      }
+      curr = child[name];
+    }
+  }
+  cwd = curr;
 }
 
 inode_ptr inode_state::directory_search(const wordvec& input,

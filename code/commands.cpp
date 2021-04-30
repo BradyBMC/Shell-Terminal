@@ -46,6 +46,8 @@ void fn_cat (inode_state& state, const wordvec& words) {
 }
 
 void fn_cd (inode_state& state, const wordvec& words) {
+   wordvec names = split(words[1],"/");
+   state.change_directory(names);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
