@@ -25,7 +25,7 @@ inode_state::inode_state() {
    inode rut = inode(file_type::DIRECTORY_TYPE);
    root = make_shared<inode>(rut);
    root->name = "/";
-   root->contents->setup_dir(cwd, root);
+   root->contents->setup_dir(root, root);
    cwd = root;
    DEBUGF ('i', "root = " << root->name << ", cwd = " << cwd
          << ", prompt = \"" << prompt() << "\"");
@@ -40,17 +40,17 @@ void inode_state::make_directory(const wordvec& dirname) {
   }
   map<string, inode_wk_ptr> parent = path->get_higher();
   map<string, inode_ptr> children = path->get_lower();
-  cout << children.size() << endl;
   inode_ptr n_dir = path->contents->mkdir(dirname[dirname.size() - 1]);
-  cout << n_dir->name << endl;
   n_dir->contents->setup_dir(n_dir, cwd);
   children.insert(pair<string, inode_ptr>(n_dir->name, n_dir));
   path->set_lower(children);
+  /*
   cout << "Task::Completed" << endl;
   cout << "size :: " << cwd->get_lower().size() << endl;
   for(auto const &pair:children) {
     cout << pair.first << " " << pair.second << endl;
   }
+  */
 }
 
 void inode_state::change_directory(const wordvec& dirname) {
@@ -83,7 +83,6 @@ inode_ptr inode_state::directory_search(const wordvec& input,
   //Does not catch if directory already has name
   int x = make ? 1 : 0;
   for(int i = 0;i < static_cast<int>(input.size()) - x;i++) {
-    cout << "runs " << endl;
     map<string, inode_wk_ptr> parent = curr->get_higher();
     map<string,inode_ptr> child = curr->get_lower();
     string name = input[i];
@@ -103,9 +102,23 @@ inode_ptr inode_state::directory_search(const wordvec& input,
 }
 
 void inode_state::list(const wordvec& path) {
+  cout << "~~~~~" << endl;
+  cout << "LIST : TASK" << endl;
   inode_ptr curr = directory_search(path, cwd, false);
-  
-  cout << path << endl;
+  if(curr == nullptr) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    return;
+  }
+  map<string, inode_wk_ptr> parent = curr->get_higher();
+  map<string, inode_ptr> children = curr->get_lower();
+  for(auto const &pair:parent) {
+    string name = pair.first;
+    cout << name << " " << parent[name].lock()->get_inode_nr() << endl;
+  }
+  for(auto const &pair:children) {
+    string name = pair.first;
+    cout << name << " " << endl;
+  }
 }
 
 const string& inode_state::prompt() const { return prompt_; }
@@ -149,6 +162,7 @@ void inode::set_lower(const map<string, inode_ptr>& child) {
 void inode::set_name(string input) {
   name = input;
 }
+
 
 
 file_error::file_error (const string& what):
