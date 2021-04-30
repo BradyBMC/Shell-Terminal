@@ -43,6 +43,16 @@ void inode_state::make_directory(const wordvec& dirname) {
   n_dir->contents->setup_dir(n_dir, temp);
 }
 
+void inode_state::make_file(const wordvec& filename) {
+  inode_ptr temp = directory_search(file_name, cwd);
+  if (temp == nullptr)
+  {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+  }
+  
+
+}
+
 inode_ptr inode_state::directory_search(const wordvec& input,
                                                  inode_ptr curr){
   for(int i = 0;i < static_cast<int>(input.size()) - 1;i++) {

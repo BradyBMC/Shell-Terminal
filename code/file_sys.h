@@ -45,6 +45,7 @@ class inode_state {
       const string& prompt() const;
       void prompt (const string&);
       void make_directory(const wordvec& dirname);
+      void make_file(const wordvec& words);
       inode_ptr directory_search(const wordvec& input, inode_ptr curr);
 
 };
@@ -128,6 +129,8 @@ class plain_file: public base_file {
       virtual size_t size() const override;
       virtual const wordvec& readfile() const override;
       virtual void writefile (const wordvec& newdata) override;
+      virtual map<string,inode_ptr> get_children() override;
+      virtual map<string,inode_wk_ptr> get_parent() override;
 };
 
 // class directory -
