@@ -103,6 +103,8 @@ inode_ptr inode_state::directory_search(const wordvec& input,
 }
 
 void inode_state::list(const wordvec& path) {
+  inode_ptr curr = directory_search(path, cwd, false);
+  
   cout << path << endl;
 }
 
