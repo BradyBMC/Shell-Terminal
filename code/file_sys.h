@@ -45,6 +45,8 @@ class inode_state {
       const string& prompt() const;
       void prompt (const string&);
       void make_directory(const string& dirname);
+      inode_ptr directory_search(const wordvec& input, inode_ptr curr);
+
 };
 
 // class inode -
