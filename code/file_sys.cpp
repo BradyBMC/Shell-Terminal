@@ -32,14 +32,20 @@ inode_state::inode_state() {
 
 }
 
-void inode_state::make_directory(const string& dirname) {
-  map<string, inode_wk_ptr> parent = cwd->get_higher();
-  map<string, inode_ptr> child = cwd->get_lower();
-  cout << dirname << endl;
+void inode_state::make_directory(const wordvec& dirname) {
+  inode_ptr temp = directory_search(dirname, cwd);
+  if(temp == nullptr) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+  }
+  map<string, inode_wk_ptr> parent = temp->get_higher();
+  map<string, inode_ptr> children = temp->get_lower();
+  inode_ptr n_dir = temp->contents->mkdir(dirname[dirname.size() - 1]);
+  n_dir->contents->setup_dir(n_dir, temp);
 }
 
-inode_ptr inode_state::directory_search(const wordvec& input, inode_ptr curr) {
-  for(int i = 0;i < static_cast<int>(input.size());i++) {
+inode_ptr inode_state::directory_search(const wordvec& input,
+                                                 inode_ptr curr){
+  for(int i = 0;i < static_cast<int>(input.size()) - 1;i++) {
     map<string, inode_wk_ptr> parent = curr->get_higher();
     map<string,inode_ptr> child = curr->get_lower();
     string name = input[i];
