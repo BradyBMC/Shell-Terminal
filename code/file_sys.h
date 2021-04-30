@@ -130,8 +130,9 @@ class plain_file: public base_file {
       virtual size_t size() const override;
       virtual const wordvec& readfile() const override;
       virtual void writefile (const wordvec& newdata) override;
-      virtual map<string,inode_ptr> get_children() override;
-      virtual map<string,inode_wk_ptr> get_parent() override;
+      virtual inode_ptr mkfile (const string& filename) override;
+      //virtual map<string,inode_ptr> get_children() override;
+      //virtual map<string,inode_wk_ptr> get_parent() override;
 };
 
 // class directory -

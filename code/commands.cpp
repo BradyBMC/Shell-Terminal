@@ -76,6 +76,7 @@ void fn_lsr (inode_state& state, const wordvec& words) {
 }
 
 void fn_make (inode_state& state, const wordvec& words) {
+   state.make_file(words);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
