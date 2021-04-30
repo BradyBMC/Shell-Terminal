@@ -33,7 +33,7 @@ inode_state::inode_state() {
 }
 
 void inode_state::make_directory(const wordvec& dirname) {
-  inode_ptr path = directory_search(dirname, cwd);
+  inode_ptr path = directory_search(dirname, cwd, true);
   if(path == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
     return;
@@ -54,6 +54,7 @@ void inode_state::make_directory(const wordvec& dirname) {
 }
 
 void inode_state::change_directory(const wordvec& dirname) {
+  /*
   inode_ptr curr = cwd;
   for(int i = 0;i < static_cast<int>(dirname.size());i++) {
     map<string, inode_wk_ptr> parent = curr->get_higher();
@@ -73,12 +74,15 @@ void inode_state::change_directory(const wordvec& dirname) {
     }
   }
   cwd = curr;
+  */
+  cwd = directory_search(dirname, cwd, false);
 }
 
 inode_ptr inode_state::directory_search(const wordvec& input,
-                                                 inode_ptr curr){
+                                                 inode_ptr curr, bool make){
   //Does not catch if directory already has name
-  for(int i = 0;i < static_cast<int>(input.size()) - 1;i++) {
+  int x = make ? 1 : 0;
+  for(int i = 0;i < static_cast<int>(input.size()) - x;i++) {
     cout << "runs " << endl;
     map<string, inode_wk_ptr> parent = curr->get_higher();
     map<string,inode_ptr> child = curr->get_lower();
@@ -96,6 +100,10 @@ inode_ptr inode_state::directory_search(const wordvec& input,
     }
   }
   return curr;
+}
+
+void inode_state::list(const wordvec& path) {
+  cout << path << endl;
 }
 
 const string& inode_state::prompt() const { return prompt_; }
