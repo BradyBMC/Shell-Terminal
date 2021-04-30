@@ -33,6 +33,10 @@ inode_state::inode_state() {
 }
 
 void inode_state::make_directory(const wordvec& dirname) {
+  if(dirname.size() == 0) {
+    cout << "No input" << endl;
+    return;
+  }
   inode_ptr path = directory_search(dirname, cwd, true);
   if(path == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
@@ -40,7 +44,7 @@ void inode_state::make_directory(const wordvec& dirname) {
   }
   map<string, inode_wk_ptr> parent = path->get_higher();
   map<string, inode_ptr> children = path->get_lower();
-  inode_ptr n_dir = path->contents->mkdir(dirname[dirname.size() - 1]);
+  inode_ptr n_dir = path->contents->mkdir(dirname[dirname.size() - 1] + "/");
   n_dir->contents->setup_dir(n_dir, cwd);
   children.insert(pair<string, inode_ptr>(n_dir->name, n_dir));
   path->set_lower(children);
@@ -85,8 +89,8 @@ inode_ptr inode_state::directory_search(const wordvec& input,
   for(int i = 0;i < static_cast<int>(input.size()) - x;i++) {
     map<string, inode_wk_ptr> parent = curr->get_higher();
     map<string,inode_ptr> child = curr->get_lower();
-    string name = input[i];
-    if(".." == name || "." == name) {
+    string name = input[i] + "/";
+    if("../" == name || "./" == name) {
       curr = parent[name].lock();
     } else {
       map<string,inode_ptr>::iterator it;
@@ -102,8 +106,10 @@ inode_ptr inode_state::directory_search(const wordvec& input,
 }
 
 void inode_state::list(const wordvec& path) {
+  /*
   cout << "~~~~~" << endl;
   cout << "LIST : TASK" << endl;
+  */
   inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
@@ -117,8 +123,20 @@ void inode_state::list(const wordvec& path) {
   }
   for(auto const &pair:children) {
     string name = pair.first;
-    cout << name << " " << endl;
+    cout << name << " " << children[name]->get_inode_nr() << endl;
   }
+}
+
+void inode_state::print_working_directory() {
+  wordvec path;
+  path.push_back(cwd->name);
+  inode_ptr curr = cwd;
+  while(curr != root) {
+    map<string, inode_wk_ptr> parent = curr->get_higher();
+    curr = parent["../"].lock(); 
+    path.push_back(curr->name);
+  }
+  cout << path << endl;
 }
 
 const string& inode_state::prompt() const { return prompt_; }
@@ -246,8 +264,8 @@ inode_ptr directory::mkfile (const string& filename) {
 void directory::setup_dir (const inode_ptr& cwd, inode_ptr& parent ) {
   inode_wk_ptr current_dir = cwd;
   inode_wk_ptr parent_dir = parent;
-  wk_dirents.insert(pair<string, inode_wk_ptr>(".", current_dir));
-  wk_dirents.insert(pair<string, inode_wk_ptr>("..", parent_dir));
+  wk_dirents.insert(pair<string, inode_wk_ptr>("./", current_dir));
+  wk_dirents.insert(pair<string, inode_wk_ptr>("../", parent_dir));
 }
 
 map<string,inode_ptr> directory::get_children() {

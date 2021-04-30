@@ -48,6 +48,7 @@ class inode_state {
       inode_ptr directory_search(const wordvec& input, inode_ptr curr, bool make);
       void change_directory(const wordvec& dirname);
       void list(const wordvec& path);
+      void print_working_directory();
 };
 
 // class inode -

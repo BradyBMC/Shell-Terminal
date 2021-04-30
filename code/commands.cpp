@@ -88,7 +88,14 @@ void fn_make (inode_state& state, const wordvec& words) {
 }
 
 void fn_mkdir (inode_state& state, const wordvec& words) {
-   wordvec names = split(words[1], "/");
+   wordvec names;
+   if(words.size() > 1) {
+     names = split(words[1],"/");
+   } else {
+     cout << "No name input" << endl;
+     return;
+   }
+   //wordvec names = split(words[1], "/");
    state.make_directory(names);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -100,6 +107,7 @@ void fn_prompt (inode_state& state, const wordvec& words) {
 }
 
 void fn_pwd (inode_state& state, const wordvec& words) {
+   state.print_working_directory();
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
