@@ -44,6 +44,9 @@ class inode_state {
       inode_state();
       const string& prompt() const;
       void prompt (const string&);
+      void make_directory(const wordvec& dirname);
+      inode_ptr directory_search(const wordvec& input, inode_ptr curr);
+
 };
 
 // class inode -
@@ -65,10 +68,13 @@ class inode {
       static size_t next_inode_nr;
       size_t inode_nr;
       base_file_ptr contents;
-      string name {};
+      string name {""};
    public:
       inode (file_type);
       size_t get_inode_nr() const;
+      void set_name(string);
+      map<string, inode_wk_ptr>get_higher();
+      map<string, inode_ptr>get_lower();
 };
 
 
@@ -97,6 +103,9 @@ class base_file {
       virtual inode_ptr mkdir (const string& dirname);
       virtual inode_ptr mkfile (const string& filename);
       virtual void setup_dir(const inode_ptr& cwd, inode_ptr& parent);
+      virtual map<string,inode_ptr> get_children();
+      virtual map<string,inode_wk_ptr> get_parent();
+
 };
 
 // class plain_file -
@@ -154,6 +163,8 @@ class directory: public base_file {
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
       virtual void setup_dir (const inode_ptr& cwd, inode_ptr& parent) override;
+      virtual map<string,inode_ptr> get_children() override;
+      virtual map<string,inode_wk_ptr> get_parent() override;
 };
 
 #endif

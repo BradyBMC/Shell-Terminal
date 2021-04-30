@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <iterator>
 #include <stdexcept>
 
 using namespace std;
@@ -21,19 +22,47 @@ ostream& operator<< (ostream& out, file_type type) {
 }
 
 inode_state::inode_state() {
-   DEBUGF ('i', "root = " << root << ", cwd = " << cwd
-          << ", prompt = \"" << prompt() << "\"");
-   /*
-   root = make_shared<inode>(file_type::DIRECTORY_TYPE);
-   cwd = root;
-   inode_wk_ptr 
-   wk_dirents.isert(pair(<string, inode_wk_ptr(".",*/ 
-
    inode rut = inode(file_type::DIRECTORY_TYPE);
    root = make_shared<inode>(rut);
    root->name = "/";
    root->contents->setup_dir(cwd, root);
    cwd = root;
+   DEBUGF ('i', "root = " << root->name << ", cwd = " << cwd
+         << ", prompt = \"" << prompt() << "\"");
+
+}
+
+void inode_state::make_directory(const wordvec& dirname) {
+  inode_ptr temp = directory_search(dirname, cwd);
+  if(temp == nullptr) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+  }
+  map<string, inode_wk_ptr> parent = temp->get_higher();
+  map<string, inode_ptr> children = temp->get_lower();
+  inode_ptr n_dir = temp->contents->mkdir(dirname[dirname.size() - 1]);
+  n_dir->contents->setup_dir(n_dir, temp);
+}
+
+inode_ptr inode_state::directory_search(const wordvec& input,
+                                                 inode_ptr curr){
+  for(int i = 0;i < static_cast<int>(input.size()) - 1;i++) {
+    map<string, inode_wk_ptr> parent = curr->get_higher();
+    map<string,inode_ptr> child = curr->get_lower();
+    string name = input[i];
+    if(".." == name || "." == name) {
+      curr = parent[name].lock();
+    } else {
+      map<string,inode_ptr>::iterator it;
+      it = child.find(name);
+      //Illegal path
+      if(it == child.end()) {
+        curr = nullptr;
+        break;
+      }
+      curr = child[name];
+    }
+  }
+  return curr;
 }
 
 const string& inode_state::prompt() const { return prompt_; }
@@ -60,6 +89,18 @@ inode::inode(file_type type): inode_nr (next_inode_nr++) {
 size_t inode::get_inode_nr() const {
    DEBUGF ('i', "inode = " << inode_nr);
    return inode_nr;
+}
+
+map<string, inode_wk_ptr> inode::get_higher() {
+  return contents->get_parent();
+}
+
+map<string, inode_ptr> inode::get_lower() {
+  return contents->get_children();
+}
+
+void inode::set_name(string input) {
+  name = input;
 }
 
 
@@ -91,6 +132,14 @@ void base_file::setup_dir (const inode_ptr&, inode_ptr&) {
    throw file_error ("is a " + error_file_type());
 }
 
+map<string,inode_ptr> base_file::get_children() {
+  throw file_error ("is a " + error_file_type());
+}
+
+map<string,inode_wk_ptr> base_file::get_parent() {
+  throw file_error ("is a "+ error_file_type());
+}
+
 
 size_t plain_file::size() const {
    size_t size {0};
@@ -115,11 +164,13 @@ size_t directory::size() const {
 
 void directory::remove (const string& filename) {
    DEBUGF ('i', filename);
-}
+} 
 
 inode_ptr directory::mkdir (const string& dirname) {
+   inode_ptr n_dir = make_shared<inode>(file_type::DIRECTORY_TYPE);
+   n_dir->set_name(dirname);
    DEBUGF ('i', dirname);
-   return nullptr;
+   return n_dir;
 }
 
 inode_ptr directory::mkfile (const string& filename) {
@@ -132,4 +183,12 @@ void directory::setup_dir (const inode_ptr& cwd, inode_ptr& parent ) {
   inode_wk_ptr parent_dir = parent;
   wk_dirents.insert(pair<string, inode_wk_ptr>(".", current_dir));
   wk_dirents.insert(pair<string, inode_wk_ptr>("..", parent_dir));
+}
+
+map<string,inode_ptr> directory::get_children() {
+  return dirents;
+}
+
+map<string,inode_wk_ptr> directory::get_parent() {
+  return wk_dirents;
 }
