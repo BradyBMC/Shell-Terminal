@@ -45,7 +45,7 @@ void inode_state::make_directory(const wordvec& dirname) {
   }
   map<string, inode_wk_ptr> parent = path->get_higher();
   map<string, inode_ptr> children = path->get_lower();
-  inode_ptr n_dir = path->contents->mkdir(dirname[dirname.size() - 1] + "/");
+  inode_ptr n_dir=path->contents->mkdir(dirname[dirname.size()-1]+"/");
   n_dir->contents->setup_dir(n_dir, path);
   children.insert(pair<string, inode_ptr>(n_dir->name, n_dir));
   path->set_lower(children);
@@ -83,12 +83,15 @@ void inode_state::change_directory(const wordvec& dirname) {
   if(dirname.size() == 0) {
     cwd = root;
   } else {
-    cwd = directory_search(dirname, cwd, false);
+    inode_ptr temp = directory_search(dirname, cwd, false);
+    if(temp != NULL) {
+      cwd = temp;
+    }
   }
 }
 
 inode_ptr inode_state::directory_search(const wordvec& input,
-                                                 inode_ptr curr, bool make){
+                                             inode_ptr curr, bool make){
   //Does not catch if directory already has name
   int x = make ? 1 : 0;
   for(int i = 0;i < static_cast<int>(input.size()) - x;i++) {

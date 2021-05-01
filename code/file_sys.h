@@ -49,6 +49,7 @@ class inode_state {
       void change_directory(const wordvec& dirname);
       void list(const wordvec& path);
       void print_working_directory();
+      void remove_here();
 };
 
 // class inode -
