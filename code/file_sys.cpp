@@ -79,12 +79,12 @@ void inode_state::make_file(const wordvec& words) {
   wordvec path = split(words.at(1), "/"); // get path
   DEBUGF('f', "path: " << path);
 
-  wordvec data; // data to write to new file with "" if none
-  data.push_back("");
-  DEBUGF('f', "data: " << data);
+  wordvec n_data; // data to write to new file with "" if none
+  n_data.push_back("");
+  DEBUGF('f', "data: " << n_data);
   if (words.size() > 2) {
     for (size_t i = 2; i != words.size(); ++i) {
-      data.push_back(words.at(i));
+      n_data.push_back(words.at(i));
     }
   }
   
@@ -96,11 +96,13 @@ void inode_state::make_file(const wordvec& words) {
     return;
   }
   inode_ptr n_file = temp->contents->mkfile(path[path.size() - 1]);
-  n_file->contents->writefile(data);
-
+  DEBUGF('f', "n_file: " <<  n_file);
+  n_file->contents->writefile(n_data);
+  
   map<string, inode_ptr> children = temp->get_lower();
   children.insert(pair<string, inode_ptr>(n_file->name, n_file));
   temp->set_lower(children);
+  
   /*
   for(auto const &pair:children) {
     cout << pair.first << " " << pair.second << endl;
@@ -234,9 +236,9 @@ const wordvec& plain_file::readfile() const {
    return data;
 }
 
-void plain_file::writefile (const wordvec& filename) {
-   data = filename;
-   DEBUGF ('i', filename);
+void plain_file::writefile (const wordvec& words) {
+   this->data = std::move(words);
+   DEBUGF ('i', words);
 }
 
 size_t directory::size() const {
@@ -257,8 +259,14 @@ inode_ptr directory::mkdir (const string& dirname) {
 }
 
 inode_ptr directory::mkfile (const string& filename) {
+   /*
    DEBUGF ('i', filename);
    return nullptr;
+   */
+  inode_ptr file_ptr = make_shared<inode>(file_type::PLAIN_TYPE);
+  file_ptr->set_name(filename);
+  DEBUGF('i', filename);
+  return file_ptr;
 }
 
 void directory::setup_dir (const inode_ptr& cwd, inode_ptr& parent ) {

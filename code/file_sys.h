@@ -103,7 +103,7 @@ class base_file {
       virtual void writefile (const wordvec& newdata);
       virtual void remove (const string& filename);
       virtual inode_ptr mkdir (const string& dirname);
-      virtual inode_ptr mkfile (const string& filename);
+      virtual inode_ptr mkfile (const string& words);
       virtual void setup_dir(const inode_ptr& cwd, inode_ptr& parent);
       virtual map<string,inode_ptr> get_children();
       virtual map<string,inode_wk_ptr> get_parent();
