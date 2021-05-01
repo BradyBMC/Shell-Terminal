@@ -92,15 +92,16 @@ void inode_state::make_file(const wordvec& words) {
   DEBUGF('f', "path: " << path);
 
   wordvec n_data; // data to write to new file with "" if none
-  n_data.push_back("");
   DEBUGF('f', "data: " << n_data);
   if (words.size() > 2) {
     for (size_t i = 2; i != words.size(); ++i) {
       n_data.push_back(words.at(i));
     }
+  } else {
+    n_data.push_back("");
   }
   
-  inode_ptr temp = directory_search(path, cwd);
+  inode_ptr temp = directory_search(path, cwd, true);
   DEBUGF('f', "temp made: " << temp);
   if (temp == nullptr)
   {
@@ -115,11 +116,29 @@ void inode_state::make_file(const wordvec& words) {
   children.insert(pair<string, inode_ptr>(n_file->name, n_file));
   temp->set_lower(children);
   
-  /*
-  for(auto const &pair:children) {
-    cout << pair.first << " " << pair.second << endl;
+}
+
+void inode_state::print_file(const wordvec& words) {
+  wordvec path = split(words.at(1), "/");
+  inode_ptr file_ptr = directory_search(path, cwd, true);
+
+  map<string, inode_ptr> child = file_ptr->get_lower();
+  map<string,inode_ptr>::iterator it;
+  it = child.find(path.at(path.size()-1));
+  //Illegal path
+  if(it == child.end()) {
+    cout << "no file" << endl;
+    return;
   }
-  */
+  file_ptr = child[path.at(path.size()-1)];
+  DEBUGF('r', file_ptr);
+
+  wordvec file_data = file_ptr->contents->readfile();
+
+  for(auto word : file_data) {
+    cout << word << " ";
+  }
+  cout << endl;
 }
 
 inode_ptr inode_state::directory_search(const wordvec& input,
@@ -284,7 +303,7 @@ inode_ptr plain_file::mkfile(const string& filename){
 }
 
 const wordvec& plain_file::readfile() const {
-   DEBUGF ('i', data);
+   DEBUGF ('r', "returning file_data: " << data);
    return data;
 }
 

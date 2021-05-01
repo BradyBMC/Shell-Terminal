@@ -46,6 +46,7 @@ class inode_state {
       void prompt (const string&);
       void make_directory(const wordvec& dirname);
       void make_file(const wordvec& words);
+      void print_file(const wordvec& words);
       inode_ptr directory_search(const wordvec& input, inode_ptr curr, bool make);
       void change_directory(const wordvec& dirname);
       void list(const wordvec& path);

@@ -41,6 +41,11 @@ int exit_status_message() {
 }
 
 void fn_cat (inode_state& state, const wordvec& words) {
+   if (words.size() > 1) {
+     state.print_file(words);
+   } else {
+     throw command_error("no file provided");
+   }
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
@@ -88,7 +93,11 @@ void fn_lsr (inode_state& state, const wordvec& words) {
 }
 
 void fn_make (inode_state& state, const wordvec& words) {
-   state.make_file(words);
+   if (words.size() > 1) {
+    state.make_file(words);
+   } else {
+    throw command_error("no arguments");
+   }
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
