@@ -88,6 +88,13 @@ void fn_ls (inode_state& state, const wordvec& words) {
 }
 
 void fn_lsr (inode_state& state, const wordvec& words) {
+   wordvec names;
+   if(words.size() > 1) {
+     names = split(words[1],"/");
+   } else {
+     names.push_back(".");
+   }
+   state.listr(names);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

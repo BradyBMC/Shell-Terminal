@@ -102,6 +102,23 @@ void inode_state::make_file(const wordvec& words) {
   }
   
   inode_ptr temp = directory_search(path, cwd, true);
+  /*
+  if (temp == nullptr) {
+    wordvec n_path = path;
+    n_path.pop_back();
+    temp = directory_search(n_path, cwd, false);
+    map<string, inode_ptr> child = temp->get_lower();
+    map<string,inode_ptr>::iterator it;
+    it = child.find(path.at(path.size()-1));
+    //Illegal path
+    if(it == child.end()) {
+      cout << "no file" << endl;
+      return;
+    }
+    temp = child[path.at(path.size()-1)];
+    temp->contents->writefile(n_data);
+  }
+  */
   DEBUGF('f', "temp made: " << temp);
   if (temp == nullptr)
   {
@@ -186,6 +203,34 @@ void inode_state::list(const wordvec& path) {
   }
 }
 
+void inode_state::listr(const wordvec& path) {
+  wordvec n_path = path;
+  cout << "/" << path.at(path.size()-1) << endl;
+  inode_ptr curr = directory_search(path, cwd, false);
+  if(curr == nullptr) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    return;
+  }
+  map<string, inode_wk_ptr> parent = curr->get_higher();
+  map<string, inode_ptr> children = curr->get_lower();
+  for(auto const &pair:parent) {
+    string name = pair.first;
+    cout << name << " " << parent[name].lock()->get_inode_nr() << endl;
+  }
+  for(auto const &pair:children) {
+    string name = pair.first;
+    cout << name << " " << children[name]->get_inode_nr() << endl;
+  }
+  for(auto const &n : children) {
+    string name = n.first;
+    if (children[name]->type() == "d") {
+      wordvec temp = split(name, "/");
+      n_path.push_back(temp.at(0));
+      listr(n_path);
+    }
+  }
+}
+
 void inode_state::print_working_directory() {
   stack<string> path;
   path.push(cwd->name);
@@ -245,6 +290,9 @@ void inode::set_name(string input) {
   name = input;
 }
 
+string inode::type() {
+  return contents->get_type();
+}
 
 
 file_error::file_error (const string& what):
@@ -287,7 +335,16 @@ void base_file::set_children(const map<string,inode_ptr>&) {
   throw file_error("is a " + error_file_type());
 }
 
+string base_file::get_type() {
+  throw file_error("is a " + error_file_type());
+}
+
 
+
+string plain_file::get_type() {
+  return "p";
+}
+
 size_t plain_file::size() const {
    size_t size {0};
    size = data.size();
@@ -310,6 +367,10 @@ const wordvec& plain_file::readfile() const {
 void plain_file::writefile (const wordvec& words) {
    this->data = std::move(words);
    DEBUGF ('i', words);
+}
+
+string directory::get_type() {
+  return "d";
 }
 
 size_t directory::size() const {
