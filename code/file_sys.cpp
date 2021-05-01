@@ -146,7 +146,10 @@ void inode_state::print_working_directory() {
     path.pop();
   }
   cout << endl;
-  //cout << path << endl;
+}
+
+void inode_state::remove_here() {
+  
 }
 
 const string& inode_state::prompt() const { return prompt_; }
