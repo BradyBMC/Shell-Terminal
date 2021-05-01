@@ -205,7 +205,10 @@ void inode_state::list(const wordvec& path) {
 
 void inode_state::listr(const wordvec& path) {
   wordvec n_path = path;
-  cout << "/" << path.at(path.size()-1) << endl;
+  for (auto &path_elem : path) {
+    cout << "/" << path_elem << " ";
+  }
+  cout << endl;
   inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
@@ -227,6 +230,7 @@ void inode_state::listr(const wordvec& path) {
       wordvec temp = split(name, "/");
       n_path.push_back(temp.at(0));
       listr(n_path);
+      n_path.pop_back();
     }
   }
 }
