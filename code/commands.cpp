@@ -46,7 +46,12 @@ void fn_cat (inode_state& state, const wordvec& words) {
 }
 
 void fn_cd (inode_state& state, const wordvec& words) {
-   wordvec names = split(words[1],"/");
+   wordvec names;
+   if(words.size() > 1) {
+     names = split(words[1],"/");
+   } else {
+     
+   }
    state.change_directory(names);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -66,6 +71,13 @@ void fn_exit (inode_state& state, const wordvec& words) {
 }
 
 void fn_ls (inode_state& state, const wordvec& words) {
+   wordvec names;
+   if(words.size() > 1) {
+     names = split(words[1],"/");
+   } else {
+     names.push_back(".");
+   }
+   state.list(names);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
@@ -82,7 +94,14 @@ void fn_make (inode_state& state, const wordvec& words) {
 }
 
 void fn_mkdir (inode_state& state, const wordvec& words) {
-   wordvec names = split(words[1], "/");
+   wordvec names;
+   if(words.size() > 1) {
+     names = split(words[1],"/");
+   } else {
+     cout << "No name input" << endl;
+     return;
+   }
+   //wordvec names = split(words[1], "/");
    state.make_directory(names);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -94,6 +113,7 @@ void fn_prompt (inode_state& state, const wordvec& words) {
 }
 
 void fn_pwd (inode_state& state, const wordvec& words) {
+   state.print_working_directory();
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
