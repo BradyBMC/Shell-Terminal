@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <stack>
 #include <stdexcept>
 
 using namespace std;
@@ -45,7 +46,7 @@ void inode_state::make_directory(const wordvec& dirname) {
   map<string, inode_wk_ptr> parent = path->get_higher();
   map<string, inode_ptr> children = path->get_lower();
   inode_ptr n_dir = path->contents->mkdir(dirname[dirname.size() - 1] + "/");
-  n_dir->contents->setup_dir(n_dir, cwd);
+  n_dir->contents->setup_dir(n_dir, path);
   children.insert(pair<string, inode_ptr>(n_dir->name, n_dir));
   path->set_lower(children);
   /*
@@ -79,7 +80,11 @@ void inode_state::change_directory(const wordvec& dirname) {
   }
   cwd = curr;
   */
-  cwd = directory_search(dirname, cwd, false);
+  if(dirname.size() == 0) {
+    cwd = root;
+  } else {
+    cwd = directory_search(dirname, cwd, false);
+  }
 }
 
 inode_ptr inode_state::directory_search(const wordvec& input,
@@ -128,15 +133,20 @@ void inode_state::list(const wordvec& path) {
 }
 
 void inode_state::print_working_directory() {
-  wordvec path;
-  path.push_back(cwd->name);
+  stack<string> path;
+  path.push(cwd->name);
   inode_ptr curr = cwd;
   while(curr != root) {
     map<string, inode_wk_ptr> parent = curr->get_higher();
-    curr = parent["../"].lock(); 
-    path.push_back(curr->name);
+    curr = parent["../"].lock();
+    path.push(curr->name);
   }
-  cout << path << endl;
+  while(!path.empty()) {
+    cout << path.top();
+    path.pop();
+  }
+  cout << endl;
+  //cout << path << endl;
 }
 
 const string& inode_state::prompt() const { return prompt_; }
