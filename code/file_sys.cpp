@@ -27,6 +27,7 @@ inode_state::inode_state() {
    root = make_shared<inode>(rut);
    root->name = "/";
    root->contents->setup_dir(root, root);
+   //root->size+=2;
    cwd = root;
    DEBUGF ('i', "root = " << root->name << ", cwd = " << cwd
          << ", prompt = \"" << prompt() << "\"");
@@ -43,47 +44,34 @@ void inode_state::make_directory(const wordvec& dirname) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
     return;
   }
+  string name = dirname[dirname.size()-1];
   map<string, inode_wk_ptr> parent = path->get_higher();
   map<string, inode_ptr> children = path->get_lower();
-  inode_ptr n_dir = path->contents->mkdir(dirname[dirname.size() - 1] + "/");
+  map<string, inode_ptr> :: iterator it;
+  it = children.find(name);
+  if(it != children.end()) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    return;
+  }
+  name = name + "/";
+  it = children.find(name);
+  if(it != children.end()) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+  }
+  inode_ptr n_dir=path->contents->mkdir(name);
   n_dir->contents->setup_dir(n_dir, path);
   children.insert(pair<string, inode_ptr>(n_dir->name, n_dir));
   path->set_lower(children);
-  /*
-  cout << "Task::Completed" << endl;
-  cout << "size :: " << cwd->get_lower().size() << endl;
-  for(auto const &pair:children) {
-    cout << pair.first << " " << pair.second << endl;
-  }
-  */
 }
 
 void inode_state::change_directory(const wordvec& dirname) {
-  /*
-  inode_ptr curr = cwd;
-  for(int i = 0;i < static_cast<int>(dirname.size());i++) {
-    map<string, inode_wk_ptr> parent = curr->get_higher();
-    map<string,inode_ptr> child = curr->get_lower();
-    string name = dirname[i];
-    if(".." == name || "." == name) {
-      curr = parent[name].lock();
-    } else {
-      map<string,inode_ptr>::iterator it;
-      it = child.find(name);
-      //Illegal path
-      if(it == child.end()) {
-        cout << "ILLEGAL DIRECTORY PATH" << endl;
-        return;
-      }
-      curr = child[name];
-    }
-  }
-  cwd = curr;
-  */
   if(dirname.size() == 0) {
     cwd = root;
   } else {
-    cwd = directory_search(dirname, cwd, false);
+    inode_ptr temp = directory_search(dirname, cwd, false);
+    if(temp != NULL) {
+      cwd = temp;
+    }
   }
 }
 
@@ -159,7 +147,7 @@ void inode_state::print_file(const wordvec& words) {
 }
 
 inode_ptr inode_state::directory_search(const wordvec& input,
-                                                 inode_ptr curr, bool make){
+                                             inode_ptr curr, bool make){
   //Does not catch if directory already has name
   int x = make ? 1 : 0;
   for(int i = 0;i < static_cast<int>(input.size()) - x;i++) {
@@ -182,10 +170,6 @@ inode_ptr inode_state::directory_search(const wordvec& input,
 }
 
 void inode_state::list(const wordvec& path) {
-  /*
-  cout << "~~~~~" << endl;
-  cout << "LIST : TASK" << endl;
-  */
   inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
@@ -193,13 +177,28 @@ void inode_state::list(const wordvec& path) {
   }
   map<string, inode_wk_ptr> parent = curr->get_higher();
   map<string, inode_ptr> children = curr->get_lower();
+
+  /*
+  inode_ptr dotdot = parent["../"].lock();
+  inode_ptr dot = parent["./"].lock();
+  cout << dot->get_inode_nr() << "\t" << dot->get_lower().size() + 2 << " ./ " << endl;
+  cout << dotdot->get_inode_nr() << "\t" << dotdot->get_higher().size() + dotdot->get_lower().size() << " ../ " << endl;
+  */
+
   for(auto const &pair:parent) {
     string name = pair.first;
-    cout << name << " " << parent[name].lock()->get_inode_nr() << endl;
+    inode_ptr par = parent[name].lock();
+    cout<<par->get_inode_nr()<<"\t"<<par->get_lower().size()+2 << " " << name << endl;
   }
+
   for(auto const &pair:children) {
     string name = pair.first;
-    cout << name << " " << children[name]->get_inode_nr() << endl;
+    if(children[name]->type() == "p") {
+      cout << children[name]->contents->size();
+    } else {
+      map<string, inode_ptr> children2 = children[name]->get_lower();
+      cout << children[name]->get_inode_nr() << "\t" << children2.size() << " " << name << endl;
+    }
   }
 }
 
@@ -218,11 +217,17 @@ void inode_state::listr(const wordvec& path) {
   map<string, inode_ptr> children = curr->get_lower();
   for(auto const &pair:parent) {
     string name = pair.first;
-    cout << name << " " << parent[name].lock()->get_inode_nr() << endl;
+    inode_ptr par = parent[name].lock();
+    cout << par->get_inode_nr() << "\t" << par->get_lower().size() + 2 << " " << name <<  endl;
   }
   for(auto const &pair:children) {
     string name = pair.first;
-    cout << name << " " << children[name]->get_inode_nr() << endl;
+    if(children[name]->type() == "p") {
+      cout << children[name]->contents->size();
+    } else {
+      map<string, inode_ptr> children2 = children[name]->get_lower();
+      cout << children[name]->get_inode_nr() << "\t" << children2.size() << " " << name << endl;
+    }
   }
   for(auto const &n : children) {
     string name = n.first;
@@ -249,7 +254,28 @@ void inode_state::print_working_directory() {
     path.pop();
   }
   cout << endl;
-  //cout << path << endl;
+}
+
+void inode_state::remove_here(const wordvec& path) {
+  inode_ptr curr = directory_search(path, cwd, true);
+  map<string, inode_ptr> children = curr->get_lower();
+
+  map<string,inode_ptr> :: iterator it;
+  string name = path[path.size()-1];
+  it = children.find(name);
+  
+  if(it!=children.end()) {
+    children.erase(name);
+  } else {
+    name = name + "/";
+    it = children.find(name); 
+    if(it!=children.end()) {
+      inode_ptr temp = children[name];
+      map<string, inode_ptr> empty = temp->get_lower();
+      if(empty.size() == 0) children.erase(name);
+    }
+  }
+  curr->set_lower(children);
 }
 
 const string& inode_state::prompt() const { return prompt_; }
@@ -342,6 +368,11 @@ void base_file::set_children(const map<string,inode_ptr>&) {
 string base_file::get_type() {
   throw file_error("is a " + error_file_type());
 }
+
+/*
+void base_file::increment() {
+  throw file_error("is a " + error_file_type());
+}*/
 
 
 

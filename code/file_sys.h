@@ -52,6 +52,7 @@ class inode_state {
       void list(const wordvec& path);
       void listr(const wordvec& path);
       void print_working_directory();
+      void remove_here(const wordvec& path);
 };
 
 // class inode -
@@ -163,6 +164,7 @@ class plain_file: public base_file {
 class directory: public base_file {
    private:
       // Must be a map, not unordered_map, so printing is lexicographic
+      //size_t dir_size;
       map<string,inode_ptr> dirents;
       map<string,inode_wk_ptr> wk_dirents;
       virtual const string& error_file_type() const override {
