@@ -90,6 +90,77 @@ void inode_state::change_directory(const wordvec& dirname) {
   }
 }
 
+void inode_state::make_file(const wordvec& words) {
+  wordvec path = split(words.at(1), "/"); // get path
+  DEBUGF('f', "path: " << path);
+
+  wordvec n_data; // data to write to new file with "" if none
+  DEBUGF('f', "data: " << n_data);
+  if (words.size() > 2) {
+    for (size_t i = 2; i != words.size(); ++i) {
+      n_data.push_back(words.at(i));
+    }
+  } else {
+    n_data.push_back("");
+  }
+  
+  inode_ptr temp = directory_search(path, cwd, true);
+  /*
+  if (temp == nullptr) {
+    wordvec n_path = path;
+    n_path.pop_back();
+    temp = directory_search(n_path, cwd, false);
+    map<string, inode_ptr> child = temp->get_lower();
+    map<string,inode_ptr>::iterator it;
+    it = child.find(path.at(path.size()-1));
+    //Illegal path
+    if(it == child.end()) {
+      cout << "no file" << endl;
+      return;
+    }
+    temp = child[path.at(path.size()-1)];
+    temp->contents->writefile(n_data);
+  }
+  */
+  DEBUGF('f', "temp made: " << temp);
+  if (temp == nullptr)
+  {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    return;
+  }
+  inode_ptr n_file = temp->contents->mkfile(path[path.size() - 1]);
+  DEBUGF('f', "n_file: " <<  n_file);
+  n_file->contents->writefile(n_data);
+  
+  map<string, inode_ptr> children = temp->get_lower();
+  children.insert(pair<string, inode_ptr>(n_file->name, n_file));
+  temp->set_lower(children);
+  
+}
+
+void inode_state::print_file(const wordvec& words) {
+  wordvec path = split(words.at(1), "/");
+  inode_ptr file_ptr = directory_search(path, cwd, true);
+
+  map<string, inode_ptr> child = file_ptr->get_lower();
+  map<string,inode_ptr>::iterator it;
+  it = child.find(path.at(path.size()-1));
+  //Illegal path
+  if(it == child.end()) {
+    cout << "no file" << endl;
+    return;
+  }
+  file_ptr = child[path.at(path.size()-1)];
+  DEBUGF('r', file_ptr);
+
+  wordvec file_data = file_ptr->contents->readfile();
+
+  for(auto word : file_data) {
+    cout << word << " ";
+  }
+  cout << endl;
+}
+
 inode_ptr inode_state::directory_search(const wordvec& input,
                                              inode_ptr curr, bool make){
   //Does not catch if directory already has name
@@ -132,6 +203,38 @@ void inode_state::list(const wordvec& path) {
   for(auto const &pair:children) {
     string name = pair.first;
     cout << name << " " << children[name]->get_inode_nr() << endl;
+  }
+}
+
+void inode_state::listr(const wordvec& path) {
+  wordvec n_path = path;
+  for (auto &path_elem : path) {
+    cout << "/" << path_elem << " ";
+  }
+  cout << endl;
+  inode_ptr curr = directory_search(path, cwd, false);
+  if(curr == nullptr) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    return;
+  }
+  map<string, inode_wk_ptr> parent = curr->get_higher();
+  map<string, inode_ptr> children = curr->get_lower();
+  for(auto const &pair:parent) {
+    string name = pair.first;
+    cout << name << " " << parent[name].lock()->get_inode_nr() << endl;
+  }
+  for(auto const &pair:children) {
+    string name = pair.first;
+    cout << name << " " << children[name]->get_inode_nr() << endl;
+  }
+  for(auto const &n : children) {
+    string name = n.first;
+    if (children[name]->type() == "d") {
+      wordvec temp = split(name, "/");
+      n_path.push_back(temp.at(0));
+      listr(n_path);
+      n_path.pop_back();
+    }
   }
 }
 
@@ -211,6 +314,9 @@ void inode::set_name(string input) {
   name = input;
 }
 
+string inode::type() {
+  return contents->get_type();
+}
 
 
 file_error::file_error (const string& what):
@@ -253,20 +359,42 @@ void base_file::set_children(const map<string,inode_ptr>&) {
   throw file_error("is a " + error_file_type());
 }
 
+string base_file::get_type() {
+  throw file_error("is a " + error_file_type());
+}
+
 
+
+string plain_file::get_type() {
+  return "p";
+}
+
 size_t plain_file::size() const {
    size_t size {0};
+   size = data.size();
    DEBUGF ('i', "size = " << size);
    return size;
 }
 
+inode_ptr plain_file::mkfile(const string& filename){
+  inode_ptr file_ptr = make_shared<inode>(file_type::PLAIN_TYPE);
+  file_ptr->set_name(filename);
+  DEBUGF('i', filename);
+  return file_ptr;
+}
+
 const wordvec& plain_file::readfile() const {
-   DEBUGF ('i', data);
+   DEBUGF ('r', "returning file_data: " << data);
    return data;
 }
 
 void plain_file::writefile (const wordvec& words) {
+   this->data = std::move(words);
    DEBUGF ('i', words);
+}
+
+string directory::get_type() {
+  return "d";
 }
 
 size_t directory::size() const {
@@ -287,8 +415,14 @@ inode_ptr directory::mkdir (const string& dirname) {
 }
 
 inode_ptr directory::mkfile (const string& filename) {
+   /*
    DEBUGF ('i', filename);
    return nullptr;
+   */
+  inode_ptr file_ptr = make_shared<inode>(file_type::PLAIN_TYPE);
+  file_ptr->set_name(filename);
+  DEBUGF('i', filename);
+  return file_ptr;
 }
 
 void directory::setup_dir (const inode_ptr& cwd, inode_ptr& parent ) {
