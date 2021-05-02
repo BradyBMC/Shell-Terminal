@@ -178,10 +178,18 @@ void inode_state::list(const wordvec& path) {
   map<string, inode_wk_ptr> parent = curr->get_higher();
   map<string, inode_ptr> children = curr->get_lower();
 
+  /*
   inode_ptr dotdot = parent["../"].lock();
   inode_ptr dot = parent["./"].lock();
   cout << dot->get_inode_nr() << "\t" << dot->get_lower().size() + 2 << " ./ " << endl;
   cout << dotdot->get_inode_nr() << "\t" << dotdot->get_higher().size() + dotdot->get_lower().size() << " ../ " << endl;
+  */
+
+  for(auto const &pair:parent) {
+    string name = pair.first;
+    inode_ptr par = parent[name].lock();
+    cout<<par->get_inode_nr()<<"\t"<<par->get_lower().size()+2 << " " << name << endl;
+  }
 
   for(auto const &pair:children) {
     string name = pair.first;
@@ -209,11 +217,17 @@ void inode_state::listr(const wordvec& path) {
   map<string, inode_ptr> children = curr->get_lower();
   for(auto const &pair:parent) {
     string name = pair.first;
-    cout << name << " " << parent[name].lock()->get_inode_nr() << endl;
+    inode_ptr par = parent[name].lock();
+    cout << par->get_inode_nr() << "\t" << par->get_lower().size() + 2 << " " << name <<  endl;
   }
   for(auto const &pair:children) {
     string name = pair.first;
-    cout << name << " " << children[name]->get_inode_nr() << endl;
+    if(children[name]->type() == "p") {
+      cout << children[name]->contents->size();
+    } else {
+      map<string, inode_ptr> children2 = children[name]->get_lower();
+      cout << children[name]->get_inode_nr() << "\t" << children2.size() << " " << name << endl;
+    }
   }
   for(auto const &n : children) {
     string name = n.first;
@@ -251,7 +265,6 @@ void inode_state::remove_here(const wordvec& path) {
   it = children.find(name);
   
   if(it!=children.end()) {
-    inode_ptr temp = children[name];
     children.erase(name);
   } else {
     name = name + "/";
