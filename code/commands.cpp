@@ -140,6 +140,7 @@ void fn_rm (inode_state& state, const wordvec& words) {
 }
 
 void fn_rmr (inode_state& state, const wordvec& words) {
+   state.rmr(words);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

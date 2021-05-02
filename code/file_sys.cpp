@@ -277,6 +277,24 @@ ostream& operator<< (ostream& out, const inode_state& state) {
    return out;
 }
 
+void inode_state::rmr(const wordvec& words) {
+  cout << "in rmr" << endl;
+  wordvec path = split(words.at(1), "/");
+  if (cwd->name == path.at(path.size()-1)) {
+    throw file_error("Cannot remove current directory");
+  }
+  inode_ptr n_ptr = directory_search(path, cwd, true);
+
+  if( n_ptr == nullptr) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    return;
+  }
+
+  map<string, inode_ptr> children = n_ptr->get_lower();
+  //children.erase(path.at(path.size()-1));
+  children[path.at(path.size()-1)] = nullptr;
+}
+
 inode::inode(file_type type): inode_nr (next_inode_nr++) {
    switch (type) {
       case file_type::PLAIN_TYPE:

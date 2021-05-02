@@ -52,6 +52,7 @@ class inode_state {
       void list(const wordvec& path);
       void listr(const wordvec& path);
       void print_working_directory();
+      void rmr(const wordvec& words);
 };
 
 // class inode -
