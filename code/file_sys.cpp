@@ -291,8 +291,9 @@ void inode_state::rmr(const wordvec& words) {
   }
 
   map<string, inode_ptr> children = n_ptr->get_lower();
-  //children.erase(path.at(path.size()-1));
-  children[path.at(path.size()-1)] = nullptr;
+  children.erase(path.at(path.size()-1));
+  //children[path.at(path.size()-1)] = nullptr;
+  n_ptr->set_lower(children);
 }
 
 inode::inode(file_type type): inode_nr (next_inode_nr++) {
