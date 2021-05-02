@@ -45,9 +45,12 @@ class inode_state {
       const string& prompt() const;
       void prompt (const string&);
       void make_directory(const wordvec& dirname);
+      void make_file(const wordvec& words);
+      void print_file(const wordvec& words);
       inode_ptr directory_search(const wordvec& input, inode_ptr curr, bool make);
       void change_directory(const wordvec& dirname);
       void list(const wordvec& path);
+      void listr(const wordvec& path);
       void print_working_directory();
 };
 
@@ -78,6 +81,7 @@ class inode {
       map<string, inode_wk_ptr>get_higher();
       map<string, inode_ptr>get_lower();
       void set_lower(const map<string, inode_ptr>& child);
+      string type();
 };
 
 
@@ -104,11 +108,12 @@ class base_file {
       virtual void writefile (const wordvec& newdata);
       virtual void remove (const string& filename);
       virtual inode_ptr mkdir (const string& dirname);
-      virtual inode_ptr mkfile (const string& filename);
+      virtual inode_ptr mkfile (const string& words);
       virtual void setup_dir(const inode_ptr& cwd, inode_ptr& parent);
       virtual map<string,inode_ptr> get_children();
       virtual map<string,inode_wk_ptr> get_parent();
       virtual void set_children(const map<string,inode_ptr>& child);
+      virtual string get_type();
 };
 
 // class plain_file -
@@ -131,6 +136,10 @@ class plain_file: public base_file {
       virtual size_t size() const override;
       virtual const wordvec& readfile() const override;
       virtual void writefile (const wordvec& newdata) override;
+      virtual inode_ptr mkfile (const string& filename) override;
+      virtual string get_type() override;
+      //virtual map<string,inode_ptr> get_children() override;
+      //virtual map<string,inode_wk_ptr> get_parent() override;
 };
 
 // class directory -
@@ -169,7 +178,7 @@ class directory: public base_file {
       virtual map<string,inode_ptr> get_children() override;
       virtual map<string,inode_wk_ptr> get_parent() override;
       virtual void set_children(const map<string,inode_ptr>& child) override;
-
+      virtual string get_type() override;
 };
 
 #endif
