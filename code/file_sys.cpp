@@ -5,6 +5,7 @@
 #include <iterator>
 #include <stack>
 #include <stdexcept>
+#include <cstring>
 
 using namespace std;
 
@@ -198,16 +199,16 @@ void inode_state::list(const wordvec& path) {
   for(auto const &pair:parent) {
     string name = pair.first;
     inode_ptr par = parent[name].lock();
-    cout<<par->get_inode_nr()<<"\t"<<par->get_lower().size()+2 << " " << name << endl;
+    cout<< "     "  <<par->get_inode_nr()<<"       "<<par->get_lower().size()+2 << "  " << name << endl;
   }
 
   for(auto const &pair:children) {
     string name = pair.first;
     if(children[name]->type() == "p") {
-      cout << children[name]->contents->size();
+      cout <<"     "<< children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
-      cout << children[name]->get_inode_nr() << "\t" << children2.size() << " " << name << endl;
+      cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() << "  " << name << endl;
     }
   }
 }
@@ -230,15 +231,15 @@ void inode_state::listr(const wordvec& path) {
   for(auto const &pair:parent) {
     string name = pair.first;
     inode_ptr par = parent[name].lock();
-    cout << par->get_inode_nr() << "\t" << par->get_lower().size() + 2 << " " << name <<  endl;
+    cout<<"     " << par->get_inode_nr() << "       " << par->get_lower().size() + 2 << "  " << name <<  endl;
   }
   for(auto const &pair:children) {
     string name = pair.first;
     if(children[name]->type() == "p") {
-      cout << children[name]->contents->size();
+      cout<<"     " << children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
-      cout << children[name]->get_inode_nr() << "\t" << children2.size() << " " << name << endl;
+      cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() << "  " << name << endl;
     }
   }
 
@@ -299,23 +300,24 @@ ostream& operator<< (ostream& out, const inode_state& state) {
    return out;
 }
 
-void inode_state::rmr(const wordvec& words) {
-  cout << "in rmr" << endl;
-  wordvec path = split(words.at(1), "/");
-  if (cwd->name == path.at(path.size()-1)) {
-    throw file_error("Cannot remove current directory");
-  }
-  inode_ptr n_ptr = directory_search(path, cwd, true);
+void inode_state::rmr(const wordvec& path) {
+  inode_ptr curr = directory_search(path, cwd, true);
+  map<string, inode_ptr> children = curr->get_lower();
 
-  if( n_ptr == nullptr) {
-    cout << "ILLEGAL DIRECTORY PATH" << endl;
-    return;
+  map<string,inode_ptr> :: iterator it;
+  string name = path[path.size()-1];
+  it = children.find(name);
+  
+  if(it!=children.end()) {
+    children.erase(name);
+  } else {
+    name = name + "/";
+    it = children.find(name); 
+    if(it!=children.end()) {
+      children.erase(name);
+    }
   }
-
-  map<string, inode_ptr> children = n_ptr->get_lower();
-  children.erase(path.at(path.size()-1));
-  //children[path.at(path.size()-1)] = nullptr;
-  n_ptr->set_lower(children);
+  curr->set_lower(children);
 }
 
 inode::inode(file_type type): inode_nr (next_inode_nr++) {
@@ -414,7 +416,10 @@ string plain_file::get_type() {
 
 size_t plain_file::size() const {
    size_t size {0};
-   size = data.size() * sizeof(string);
+   for(auto word:data) {
+     size += word.length();
+   }
+   size += data.size() - 1;
    DEBUGF ('i', "size = " << size);
    return size;
 }
