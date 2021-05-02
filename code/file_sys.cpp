@@ -151,8 +151,22 @@ void inode_state::print_working_directory() {
   cout << endl;
 }
 
-void inode_state::remove_here() {
-  
+void inode_state::remove_here(const wordvec& path) {
+  inode_ptr curr = directory_search(path, cwd, true);
+  map<string, inode_ptr> children = curr->get_lower();
+
+  map<string,inode_ptr> :: iterator it;
+  string name = path[path.size()-1];
+  it = children.find(name);
+
+  if(it!=children.end()) {
+    inode_ptr temp = children[name];
+    if(dynamic_cast<plain_file*>(temp->contents)) {
+      children.erase(name);
+    } else {
+      cout << "can't rm directory" << endl;
+    }
+  }
 }
 
 const string& inode_state::prompt() const { return prompt_; }
