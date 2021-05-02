@@ -44,12 +44,22 @@ void inode_state::make_directory(const wordvec& dirname) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
     return;
   }
+  string name = dirname[dirname.size()-1];
   map<string, inode_wk_ptr> parent = path->get_higher();
   map<string, inode_ptr> children = path->get_lower();
-  inode_ptr n_dir=path->contents->mkdir(dirname[dirname.size()-1]+"/");
-  //size_recursive(path, false);
+  map<string, inode_ptr> :: iterator it;
+  it = children.find(name);
+  if(it != children.end()) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    return;
+  }
+  name = name + "/";
+  it = children.find(name);
+  if(it != children.end()) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+  }
+  inode_ptr n_dir=path->contents->mkdir(name);
   n_dir->contents->setup_dir(n_dir, path);
-  //n_dir->size+=2;
   children.insert(pair<string, inode_ptr>(n_dir->name, n_dir));
   path->set_lower(children);
 }
