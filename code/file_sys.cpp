@@ -125,11 +125,21 @@ void inode_state::make_file(const wordvec& words) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
     return;
   }
+
+
+  map<string, inode_ptr> children = temp->get_lower();
+
+  if (children.find(path[path.size()-1]) != children.end()) {
+    cout << "file already here" << endl;
+    temp = children[path.at(path.size()-1)];
+    temp->contents->writefile(n_data);
+    return;
+  }
+
   inode_ptr n_file = temp->contents->mkfile(path[path.size() - 1]);
   DEBUGF('f', "n_file: " <<  n_file);
   n_file->contents->writefile(n_data);
   
-  map<string, inode_ptr> children = temp->get_lower();
   children.insert(pair<string, inode_ptr>(n_file->name, n_file));
   temp->set_lower(children);
   
@@ -206,9 +216,11 @@ void inode_state::list(const wordvec& path) {
 void inode_state::listr(const wordvec& path) {
   wordvec n_path = path;
   for (auto &path_elem : path) {
-    cout << "/" << path_elem << " ";
+    if (path_elem == ".") { cout << "/";}
+    else { cout << "/" << path_elem;};
   }
-  cout << endl;
+  cout << ":" << endl;
+
   inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
@@ -218,12 +230,17 @@ void inode_state::listr(const wordvec& path) {
   map<string, inode_ptr> children = curr->get_lower();
   for(auto const &pair:parent) {
     string name = pair.first;
-    cout << name << " " << parent[name].lock()->get_inode_nr() << endl;
+    cout << "    ";
+    cout << parent[name].lock()->get_inode_nr() << "       ";
+    cout << parent[name].lock()->contents->size() << "  " << name <<  endl;
   }
   for(auto const &pair:children) {
     string name = pair.first;
-    cout << name << " " << children[name]->get_inode_nr() << endl;
+    cout << "    ";
+    cout << children[name]->get_inode_nr() << "       ";
+    cout << children[name]->contents->size() << "  " << name <<  endl;
   }
+
   for(auto const &n : children) {
     string name = n.first;
     if (children[name]->type() == "d") {
@@ -351,7 +368,7 @@ string plain_file::get_type() {
 
 size_t plain_file::size() const {
    size_t size {0};
-   size = data.size();
+   size = data.size() * sizeof(string);
    DEBUGF ('i', "size = " << size);
    return size;
 }
