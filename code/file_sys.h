@@ -53,9 +53,6 @@ class inode_state {
       void listr(const wordvec& path);
       void print_working_directory();
       void remove_here(const wordvec& path);
-      void remove_recursive(const wordvec& path);
-      void size_recursive(const inode_ptr& curr, bool sub);
-      void recur_delete(const inode_ptr& curr);
 };
 
 // class inode -
@@ -76,7 +73,6 @@ class inode {
    private:
       static size_t next_inode_nr;
       size_t inode_nr;
-      size_t size = 0;
       base_file_ptr contents;
       string name {""};
    public:
@@ -119,7 +115,6 @@ class base_file {
       virtual map<string,inode_wk_ptr> get_parent();
       virtual void set_children(const map<string,inode_ptr>& child);
       virtual string get_type();
-      //virtual void increment();
 };
 
 // class plain_file -
@@ -186,7 +181,6 @@ class directory: public base_file {
       virtual map<string,inode_wk_ptr> get_parent() override;
       virtual void set_children(const map<string,inode_ptr>& child) override;
       virtual string get_type() override;
-      //virtual void increment() override;
 };
 
 #endif

@@ -154,7 +154,7 @@ void fn_rmr (inode_state& state, const wordvec& words) {
    } else {
      cout << "No file name" << endl;
    }
-   state.remove_recursive(names);
+   //state.remove_recursive(names);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

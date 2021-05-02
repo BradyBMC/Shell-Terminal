@@ -27,7 +27,7 @@ inode_state::inode_state() {
    root = make_shared<inode>(rut);
    root->name = "/";
    root->contents->setup_dir(root, root);
-   root->size+=2;
+   //root->size+=2;
    cwd = root;
    DEBUGF ('i', "root = " << root->name << ", cwd = " << cwd
          << ", prompt = \"" << prompt() << "\"");
@@ -47,9 +47,9 @@ void inode_state::make_directory(const wordvec& dirname) {
   map<string, inode_wk_ptr> parent = path->get_higher();
   map<string, inode_ptr> children = path->get_lower();
   inode_ptr n_dir=path->contents->mkdir(dirname[dirname.size()-1]+"/");
-  size_recursive(path, false);
+  //size_recursive(path, false);
   n_dir->contents->setup_dir(n_dir, path);
-  n_dir->size+=2;
+  //n_dir->size+=2;
   children.insert(pair<string, inode_ptr>(n_dir->name, n_dir));
   path->set_lower(children);
 }
@@ -167,16 +167,20 @@ void inode_state::list(const wordvec& path) {
   }
   map<string, inode_wk_ptr> parent = curr->get_higher();
   map<string, inode_ptr> children = curr->get_lower();
-  for(auto const &pair:parent) {
-    string name = pair.first;
-    inode_ptr par = parent[name].lock();
-    cout << par->get_inode_nr() << "\t" << par->size << " " << name << endl;
-  }
+
+  inode_ptr dotdot = parent["../"].lock();
+  inode_ptr dot = parent["./"].lock();
+  cout << dot->get_inode_nr() << "\t" << dot->get_lower().size() + 2 << " ./ " << endl;
+  cout << dotdot->get_inode_nr() << "\t" << dotdot->get_higher().size() + dotdot->get_lower().size() << " ../ " << endl;
+
   for(auto const &pair:children) {
     string name = pair.first;
-    inode_ptr child = children[name];
-    cout << child->get_inode_nr() << "\t" << child->size << " " << name << endl;
-
+    if(children[name]->type() == "p") {
+      cout << children[name]->contents->size();
+    } else {
+      map<string, inode_ptr> children2 = children[name]->get_lower();
+      cout << children[name]->get_inode_nr() << "\t" << children2.size() << " " << name << endl;
+    }
   }
 }
 
@@ -236,7 +240,6 @@ void inode_state::remove_here(const wordvec& path) {
   string name = path[path.size()-1];
   it = children.find(name);
   
-
   if(it!=children.end()) {
     inode_ptr temp = children[name];
     children.erase(name);
@@ -245,47 +248,11 @@ void inode_state::remove_here(const wordvec& path) {
     it = children.find(name); 
     if(it!=children.end()) {
       inode_ptr temp = children[name];
-      if(temp->size == 2) children.erase(name);
+      map<string, inode_ptr> empty = temp->get_lower();
+      if(empty.size() == 0) children.erase(name);
     }
   }
-  size_recursive(curr, true);
   curr->set_lower(children);
-}
-
-void inode_state::remove_recursive(const wordvec& path) {
-  inode_ptr curr = directory_search(path, cwd, true);
-  recur_delete(curr);
-}
-
-void inode_state::recur_delete(const inode_ptr& curr) {
-  map<string, inode_ptr> children = curr->get_lower();
-  for(auto const &pair:children) {
-    string name = pair.first;
-    if(children[name]->type() == "d") {
-      recur_delete(children[name]);
-      children.erase(name);
-      size_recursive(curr, true);
-    } else {
-      children.erase(name);
-      size_recursive(curr, true);
-    }
-    curr->set_lower(children);
-  }
-}
-
-void inode_state::size_recursive(const inode_ptr& curr, bool sub) {
-  int x = 1;
-  if(sub == true) {
-    x = -1;
-  }
-  if(curr == root) {
-    root->size+=x;
-    return;
-  }
-  map<string, inode_wk_ptr> parent = curr->get_higher();
-  inode_ptr next = parent["../"].lock();
-  next->size+=x;
-  size_recursive(next,sub);
 }
 
 const string& inode_state::prompt() const { return prompt_; }
