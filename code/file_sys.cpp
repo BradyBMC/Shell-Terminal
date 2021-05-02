@@ -261,15 +261,16 @@ void inode_state::remove_here(const wordvec& path) {
   map<string,inode_ptr> :: iterator it;
   string name = path[path.size()-1];
   it = children.find(name);
-
   if(it!=children.end()) {
     inode_ptr temp = children[name];
-    if(dynamic_cast<plain_file*>(temp->contents)) {
+    if(temp->type() == "p") {
+      cout << "here"<< endl;
       children.erase(name);
     } else {
       cout << "can't rm directory" << endl;
     }
   }
+  curr->set_lower(children);
 }
 
 const string& inode_state::prompt() const { return prompt_; }
