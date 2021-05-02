@@ -160,10 +160,6 @@ inode_ptr inode_state::directory_search(const wordvec& input,
 }
 
 void inode_state::list(const wordvec& path) {
-  /*
-  cout << "~~~~~" << endl;
-  cout << "LIST : TASK" << endl;
-  */
   inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
@@ -174,13 +170,11 @@ void inode_state::list(const wordvec& path) {
   for(auto const &pair:parent) {
     string name = pair.first;
     inode_ptr par = parent[name].lock();
-    //cout << name << " " << parent[name].lock()->get_inode_nr() << endl;
     cout << par->get_inode_nr() << "\t" << par->size << " " << name << endl;
   }
   for(auto const &pair:children) {
     string name = pair.first;
     inode_ptr child = children[name];
-    //cout << name << " " << children[name]->get_inode_nr() << endl;
     cout << child->get_inode_nr() << "\t" << child->size << " " << name << endl;
 
   }
@@ -258,9 +252,25 @@ void inode_state::remove_here(const wordvec& path) {
   curr->set_lower(children);
 }
 
-void inode_state::remove_here_recursive(const wordvec& path) {
+void inode_state::remove_recursive(const wordvec& path) {
   inode_ptr curr = directory_search(path, cwd, true);
+  recur_delete(curr);
+}
 
+void inode_state::recur_delete(const inode_ptr& curr) {
+  map<string, inode_ptr> children = curr->get_lower();
+  for(auto const &pair:children) {
+    string name = pair.first;
+    if(children[name]->type() == "d") {
+      recur_delete(children[name]);
+      children.erase(name);
+      size_recursive(curr, true);
+    } else {
+      children.erase(name);
+      size_recursive(curr, true);
+    }
+    curr->set_lower(children);
+  }
 }
 
 void inode_state::size_recursive(const inode_ptr& curr, bool sub) {

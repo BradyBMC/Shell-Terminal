@@ -53,8 +53,9 @@ class inode_state {
       void listr(const wordvec& path);
       void print_working_directory();
       void remove_here(const wordvec& path);
-      void remove_here_recursive(const wordvec& path);
+      void remove_recursive(const wordvec& path);
       void size_recursive(const inode_ptr& curr, bool sub);
+      void recur_delete(const inode_ptr& curr);
 };
 
 // class inode -
