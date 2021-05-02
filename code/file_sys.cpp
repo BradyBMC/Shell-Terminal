@@ -113,11 +113,21 @@ void inode_state::make_file(const wordvec& words) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
     return;
   }
+
+
+  map<string, inode_ptr> children = temp->get_lower();
+
+  if (children.find(path[path.size()-1]) != children.end()) {
+    cout << "file already here" << endl;
+    temp = children[path.at(path.size()-1)];
+    temp->contents->writefile(n_data);
+    return;
+  }
+
   inode_ptr n_file = temp->contents->mkfile(path[path.size() - 1]);
   DEBUGF('f', "n_file: " <<  n_file);
   n_file->contents->writefile(n_data);
   
-  map<string, inode_ptr> children = temp->get_lower();
   children.insert(pair<string, inode_ptr>(n_file->name, n_file));
   temp->set_lower(children);
   
@@ -205,9 +215,11 @@ void inode_state::list(const wordvec& path) {
 void inode_state::listr(const wordvec& path) {
   wordvec n_path = path;
   for (auto &path_elem : path) {
-    cout << "/" << path_elem << " ";
+    if (path_elem == ".") { cout << "/";}
+    else { cout << "/" << path_elem;};
   }
-  cout << endl;
+  cout << ":" << endl;
+
   inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
@@ -229,6 +241,7 @@ void inode_state::listr(const wordvec& path) {
       cout << children[name]->get_inode_nr() << "\t" << children2.size() << " " << name << endl;
     }
   }
+
   for(auto const &n : children) {
     string name = n.first;
     if (children[name]->type() == "d") {
@@ -284,6 +297,25 @@ ostream& operator<< (ostream& out, const inode_state& state) {
    out << "inode_state: root = " << state.root
        << ", cwd = " << state.cwd;
    return out;
+}
+
+void inode_state::rmr(const wordvec& words) {
+  cout << "in rmr" << endl;
+  wordvec path = split(words.at(1), "/");
+  if (cwd->name == path.at(path.size()-1)) {
+    throw file_error("Cannot remove current directory");
+  }
+  inode_ptr n_ptr = directory_search(path, cwd, true);
+
+  if( n_ptr == nullptr) {
+    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    return;
+  }
+
+  map<string, inode_ptr> children = n_ptr->get_lower();
+  children.erase(path.at(path.size()-1));
+  //children[path.at(path.size()-1)] = nullptr;
+  n_ptr->set_lower(children);
 }
 
 inode::inode(file_type type): inode_nr (next_inode_nr++) {
@@ -382,7 +414,7 @@ string plain_file::get_type() {
 
 size_t plain_file::size() const {
    size_t size {0};
-   size = data.size();
+   size = data.size() * sizeof(string);
    DEBUGF ('i', "size = " << size);
    return size;
 }

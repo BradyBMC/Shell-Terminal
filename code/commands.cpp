@@ -148,13 +148,7 @@ void fn_rm (inode_state& state, const wordvec& words) {
 }
 
 void fn_rmr (inode_state& state, const wordvec& words) {
-   wordvec names;
-   if(words.size() > 1) {
-     names = split(words[1], "/");
-   } else {
-     cout << "No file name" << endl;
-   }
-   //state.remove_recursive(names);
+   state.rmr(words);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }
