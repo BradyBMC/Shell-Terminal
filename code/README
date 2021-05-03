@@ -28,4 +28,4 @@ Running 'make' or 'make all' will compile the program.
 Running 'yshell' will execute the program and take in
 any input the user gives. Commands are the similar to linux.
 Running 'make clean' will remove all binaries. 
-Running 'make spotless' will remove all binary files and ydc. 
+Running 'make spotless' will remove all binary files and yshell. 
