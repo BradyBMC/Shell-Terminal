@@ -6,6 +6,7 @@
 #include <stack>
 #include <stdexcept>
 #include <cstring>
+#include <iomanip>
 
 using namespace std;
 
@@ -259,7 +260,7 @@ void inode_state::listr(const wordvec& path) {
   for(auto const &pair:children) {
     string name = pair.first;
     if(children[name]->type() == "p") {
-      cout<<"     " << children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
+      cout<<setw(5) << children[name]->get_inode_nr() << setw(7) << children[name]->contents->size() << "  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
       cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() + 2 << "  " << name << endl;
@@ -321,6 +322,17 @@ void inode_state::remove_here(const wordvec& path) {
 }
 
 const string& inode_state::prompt() const { return prompt_; }
+
+void inode_state::set_prompt(const wordvec& words) {
+  string new_prompt{""};
+  auto word = ++words.cbegin();
+  for (; word != words.cend(); ++word) {
+    //new_prompt = new_prompt + static_cast<string>(word);
+    new_prompt.append(*word);
+  }
+  new_prompt.append(" ");
+  prompt_ = new_prompt;
+}
 
 ostream& operator<< (ostream& out, const inode_state& state) {
    out << "inode_state: root = " << state.root

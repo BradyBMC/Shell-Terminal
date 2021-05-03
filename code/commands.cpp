@@ -125,7 +125,11 @@ void fn_mkdir (inode_state& state, const wordvec& words) {
 }
 
 void fn_prompt (inode_state& state, const wordvec& words) {
-   state.set_prompt(words[1]);
+   if(words.size() > 1) {
+     state.set_prompt(words);
+   } else {
+     throw command_error("No arguments givven");
+   }
    DEBUGF ('c', state);
    DEBUGF ('c', words);
 }

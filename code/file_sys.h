@@ -54,8 +54,7 @@ class inode_state {
       void print_working_directory();
       void rmr(const wordvec& words);
       void remove_here(const wordvec& path);
-      
-      void set_prompt(const string& input) {prompt_ = input;}
+      void set_prompt(const wordvec& words);
 };
 
 // class inode -
