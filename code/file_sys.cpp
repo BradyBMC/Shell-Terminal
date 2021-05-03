@@ -373,10 +373,8 @@ void inode_state::set_prompt(const wordvec& words) {
   string new_prompt{""};
   auto word = ++words.cbegin();
   for (; word != words.cend(); ++word) {
-    //new_prompt = new_prompt + static_cast<string>(word);
-    new_prompt.append(*word);
+    new_prompt.append(*word + " ");
   }
-  new_prompt.append(" ");
   prompt_ = new_prompt;
 }
 
