@@ -6,6 +6,7 @@
 #include <stack>
 #include <stdexcept>
 #include <cstring>
+#include <iomanip>
 
 using namespace std;
 
@@ -118,8 +119,11 @@ void inode_state::make_file(const wordvec& words) {
 
   map<string, inode_ptr> children = temp->get_lower();
 
+  if (children.find(path.at(path.size()-1) + "/") != children.end()) {
+    throw file_error("Directory with same name already present.");
+  }
+
   if (children.find(path[path.size()-1]) != children.end()) {
-    cout << "file already here" << endl;
     temp = children[path.at(path.size()-1)];
     temp->contents->writefile(n_data);
     return;
@@ -135,27 +139,29 @@ void inode_state::make_file(const wordvec& words) {
 }
 
 void inode_state::print_file(const wordvec& words) {
-  wordvec path = split(words.at(1), "/");
-  inode_ptr file_ptr = directory_search(path, cwd, true);
+  for (size_t i = 1; i < words.size(); i++) {
+    wordvec path = split(words.at(i), "/");
+    inode_ptr file_ptr = directory_search(path, cwd, true);
 
-  map<string, inode_ptr> child = file_ptr->get_lower();
-  map<string,inode_ptr>::iterator it;
-  it = child.find(path.at(path.size()-1));
-  //Illegal path
-  if(it == child.end()) {
-    cout<<"cat: "<<path[path.size()-1]
-                 <<": No such file or directory"<<endl;
-    return;
+    map<string, inode_ptr> child = file_ptr->get_lower();
+    map<string,inode_ptr>::iterator it;
+    it = child.find(path.at(path.size()-1));
+    //Illegal path
+    if(it == child.end()) {
+      cout<<"cat: "<<path[path.size()-1]
+                   <<": No such file or directory"<<endl;
+      return;
+    }
+    file_ptr = child[path.at(path.size()-1)];
+    DEBUGF('r', file_ptr);
+
+    wordvec file_data = file_ptr->contents->readfile();
+
+    for(auto word : file_data) {
+      cout << word << " ";
+    }
+    cout << endl;
   }
-  file_ptr = child[path.at(path.size()-1)];
-  DEBUGF('r', file_ptr);
-
-  wordvec file_data = file_ptr->contents->readfile();
-
-  for(auto word : file_data) {
-    cout << word << " ";
-  }
-  cout << endl;
 }
 
 inode_ptr inode_state::directory_search(const wordvec& input,
@@ -288,15 +294,18 @@ void inode_state::listr(const wordvec& path) {
   for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
     string name = pair->first;
     inode_ptr par = parent[name].lock();
-    cout<<"     " << par->get_inode_nr() << "       " << par->get_lower().size() + 2 << "  " << name <<  endl;
+    cout<<"     " << par->get_inode_nr() << setw(8) << par->get_lower().size() + 2 
+    << "  " << name <<  endl;
   }
   for(auto const &pair:children) {
     string name = pair.first;
     if(children[name]->type() == "p") {
-      cout<<"     " << children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
+      cout<< "     " << children[name]->get_inode_nr() << setw(8) << children[name]->contents->size() <<
+      "  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
-      cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() + 2 << "  " << name << endl;
+      cout <<"     "<< children[name]->get_inode_nr() << setw(8) << children2.size() + 2 
+      << "  " << name << endl;
     }
   }
 
@@ -355,6 +364,17 @@ void inode_state::remove_here(const wordvec& path) {
 }
 
 const string& inode_state::prompt() const { return prompt_; }
+
+void inode_state::set_prompt(const wordvec& words) {
+  string new_prompt{""};
+  auto word = ++words.cbegin();
+  for (; word != words.cend(); ++word) {
+    //new_prompt = new_prompt + static_cast<string>(word);
+    new_prompt.append(*word);
+  }
+  new_prompt.append(" ");
+  prompt_ = new_prompt;
+}
 
 ostream& operator<< (ostream& out, const inode_state& state) {
    out << "inode_state: root = " << state.root
