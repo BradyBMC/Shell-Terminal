@@ -216,7 +216,8 @@ void inode_state::list(const wordvec& path) {
     map<string,inode_ptr> :: iterator it;
     it = children.find(name);
     if(it != children.end()) {
-      cout <<"     "<< children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
+      cout<< "     " << children[name]->get_inode_nr() << setw(8) << 
+      children[name]->contents->size() <<"  " << name << endl;
       return;
     } else {
       cout << "Doesn't exist " << endl;
@@ -252,16 +253,19 @@ void inode_state::list(const wordvec& path) {
   for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
     string name = pair->first;
     inode_ptr par = parent[name].lock();
-    cout<< "     "  <<par->get_inode_nr()<<"       "<<par->get_lower().size()+2 << "  " << name << endl;
+    cout<<"     " << par->get_inode_nr() << setw(8) << 
+    par->get_lower().size() + 2 << "  " << name <<  endl;
   }
 
   for(auto const &pair:children) {
     string name = pair.first;
     if(children[name]->type() == "p") {
-      cout <<"     "<< children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
+      cout<< "     " << children[name]->get_inode_nr() << setw(8) 
+      << children[name]->contents->size() <<"  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
-      cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() + 2<< "  " << name << endl;
+      cout <<"     "<< children[name]->get_inode_nr() << setw(8) 
+      << children2.size() + 2 << "  " << name << endl;
     }
   }
 }
@@ -294,18 +298,18 @@ void inode_state::listr(const wordvec& path) {
   for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
     string name = pair->first;
     inode_ptr par = parent[name].lock();
-    cout<<"     " << par->get_inode_nr() << setw(8) << par->get_lower().size() + 2 
-    << "  " << name <<  endl;
+    cout<<"     " << par->get_inode_nr() << setw(8) 
+    << par->get_lower().size() + 2 << "  " << name <<  endl;
   }
   for(auto const &pair:children) {
     string name = pair.first;
     if(children[name]->type() == "p") {
-      cout<< "     " << children[name]->get_inode_nr() << setw(8) << children[name]->contents->size() <<
-      "  " << name << endl;
+      cout<< "     " << children[name]->get_inode_nr() << setw(8) 
+      << children[name]->contents->size() <<"  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
-      cout <<"     "<< children[name]->get_inode_nr() << setw(8) << children2.size() + 2 
-      << "  " << name << endl;
+      cout <<"     "<< children[name]->get_inode_nr() << setw(8) 
+      << children2.size() + 2 << "  " << name << endl;
     }
   }
 
