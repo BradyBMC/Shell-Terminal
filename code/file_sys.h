@@ -54,6 +54,8 @@ class inode_state {
       void print_working_directory();
       void rmr(const wordvec& words);
       void remove_here(const wordvec& path);
+      
+      void set_prompt(const string& input) {prompt_ = input;}
 };
 
 // class inode -
@@ -84,6 +86,7 @@ class inode {
       map<string, inode_ptr>get_lower();
       void set_lower(const map<string, inode_ptr>& child);
       string type();
+
 };
 
 
