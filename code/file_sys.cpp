@@ -182,6 +182,7 @@ inode_ptr inode_state::directory_search(const wordvec& input,
 }
 
 void inode_state::list(const wordvec& path) {
+  /*
   if(path.size() == 0) {
     cout << cwd->name;
   }
@@ -193,21 +194,50 @@ void inode_state::list(const wordvec& path) {
     }
   }
   cout << ":" << endl;
+  */
+  inode_ptr curr;
+  if(path[0] == "/") {
+    curr = root;
+  } else {
+    curr = directory_search(path, cwd, false);
+  }
+  if(curr == nullptr) {
+    string name = path[path.size()-1];
+    curr = directory_search(path, cwd, true);
+    map<string, inode_ptr>children = curr->get_lower();
+    map<string,inode_ptr> :: iterator it;
+    it = children.find(name);
+    if(it != children.end()) {
+      cout <<"     "<< children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
+      return;
+    } else {
+      cout << "Doesn't exist " << endl;
+    }
+  }
 
-  inode_ptr curr = directory_search(path, cwd, false);
+  if(curr == root) {
+    cout << root->name;
+  } else {
+    for(auto &path_elem:path) {
+      if(path_elem == ".") {
+        cout << "/"<< cwd->name.substr(0,cwd->name.size()-1);
+      } else {
+        cout << "/"<< path_elem;
+      }
+    }
+    //cout << "/" << curr->name << ":" << endl;
+  }
+  cout << ":"<<endl;
+  
   if(curr == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
     return;
   }
+
+  
+
   map<string, inode_wk_ptr> parent = curr->get_higher();
   map<string, inode_ptr> children = curr->get_lower();
-
-  /*
-  inode_ptr dotdot = parent["../"].lock();
-  inode_ptr dot = parent["./"].lock();
-  cout << dot->get_inode_nr() << "\t" << dot->get_lower().size() + 2 << " ./ " << endl;
-  cout << dotdot->get_inode_nr() << "\t" << dotdot->get_higher().size() + dotdot->get_lower().size() << " ../ " << endl;
-  */
 
   for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
     string name = pair->first;
