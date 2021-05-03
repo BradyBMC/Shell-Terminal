@@ -1,0 +1,31 @@
+We are working together doing pair programming.
+All of the work submitted here is code written by us,
+except for code copied from the instructor's directories.
+
+We both have read and understood the UC Santa Cruz
+Academic Misconduct Policy for Undergraduates.
+https://ue.ucsc.edu/academic-misconduct.html
+
+We acknowledge that each partner in a programming pair is
+responsible for the work performed by the other partner,
+and all work has been reviewed by both partners working
+together. Both of us know the format of the PARTNER file.
+
+-- Brady Chan (brmchan@ucsc.edu)
+-- Evan Clark (evlclark@ucsc.edu)
+
+
+
+DESCRIPTION
+
+This program creates a shell to read commands from the 
+standard input. It acts like a terminal to hold
+directories and files.
+
+USAGE
+
+Running 'make' or 'make all' will compile the program. 
+Running 'yshell' will execute the program and take in
+any input the user gives. Commands are the similar to linux.
+Running 'make clean' will remove all binaries. 
+Running 'make spotless' will remove all binary files and yshell. 

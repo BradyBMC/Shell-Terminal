@@ -188,6 +188,7 @@ inode_ptr inode_state::directory_search(const wordvec& input,
 }
 
 void inode_state::list(const wordvec& path) {
+  /*
   if(path.size() == 0) {
     cout << cwd->name;
   }
@@ -199,35 +200,72 @@ void inode_state::list(const wordvec& path) {
     }
   }
   cout << ":" << endl;
-
-  inode_ptr curr = directory_search(path, cwd, false);
+  */
+  inode_ptr curr;
+  if(path.size() == 0) {
+    curr = cwd;
+  } else if(path[0] == "/") {
+    curr = root;
+  } else {
+    curr = directory_search(path, cwd, false);
+  }
+  if(curr == nullptr) {
+    string name = path[path.size()-1];
+    curr = directory_search(path, cwd, true);
+    map<string, inode_ptr>children = curr->get_lower();
+    map<string,inode_ptr> :: iterator it;
+    it = children.find(name);
+    if(it != children.end()) {
+      cout<< "     " << children[name]->get_inode_nr() << setw(8) << 
+      children[name]->contents->size() <<"  " << name << endl;
+      return;
+    } else {
+      cout << "Doesn't exist " << endl;
+    }
+  }
+  
+  if(path.size() == 0) {
+    string header = cwd->name.substr(0,cwd->name.size()-1);
+    if(header == "/") {
+      cout << header;
+    } else {
+      cout << "/" << header;
+    }
+  } else if(path.size() == 1) {
+    cout << path[0];
+  } else {
+    for(auto &path_elem:path) {
+      cout << "/"<< path_elem;
+    }
+  }
+  cout << ":"<<endl;
+  
   if(curr == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
     return;
   }
+
+  
+
   map<string, inode_wk_ptr> parent = curr->get_higher();
   map<string, inode_ptr> children = curr->get_lower();
-
-  /*
-  inode_ptr dotdot = parent["../"].lock();
-  inode_ptr dot = parent["./"].lock();
-  cout << dot->get_inode_nr() << "\t" << dot->get_lower().size() + 2 << " ./ " << endl;
-  cout << dotdot->get_inode_nr() << "\t" << dotdot->get_higher().size() + dotdot->get_lower().size() << " ../ " << endl;
-  */
 
   for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
     string name = pair->first;
     inode_ptr par = parent[name].lock();
-    cout<< "     "  <<par->get_inode_nr()<<"       "<<par->get_lower().size()+2 << "  " << name << endl;
+    cout<<"     " << par->get_inode_nr() << setw(8) << 
+    par->get_lower().size() + 2 << "  " << name <<  endl;
   }
 
   for(auto const &pair:children) {
     string name = pair.first;
     if(children[name]->type() == "p") {
-      cout <<"     "<< children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
+      cout<< "     " << children[name]->get_inode_nr() << setw(8) 
+      << children[name]->contents->size() <<"  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
-      cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() + 2<< "  " << name << endl;
+      cout <<"     "<< children[name]->get_inode_nr() << setw(8) 
+      << children2.size() + 2 << "  " << name << endl;
     }
   }
 }
@@ -260,18 +298,18 @@ void inode_state::listr(const wordvec& path) {
   for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
     string name = pair->first;
     inode_ptr par = parent[name].lock();
-    cout<<"     " << par->get_inode_nr() << setw(8) << par->get_lower().size() + 2 
-    << "  " << name <<  endl;
+    cout<<"     " << par->get_inode_nr() << setw(8) 
+    << par->get_lower().size() + 2 << "  " << name <<  endl;
   }
   for(auto const &pair:children) {
     string name = pair.first;
     if(children[name]->type() == "p") {
-      cout<< "     " << children[name]->get_inode_nr() << setw(8) << children[name]->contents->size() <<
-      "  " << name << endl;
+      cout<< "     " << children[name]->get_inode_nr() << setw(8) 
+      << children[name]->contents->size() <<"  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
-      cout <<"     "<< children[name]->get_inode_nr() << setw(8) << children2.size() + 2 
-      << "  " << name << endl;
+      cout <<"     "<< children[name]->get_inode_nr() << setw(8) 
+      << children2.size() + 2 << "  " << name << endl;
     }
   }
 
