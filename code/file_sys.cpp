@@ -143,7 +143,7 @@ void inode_state::print_file(const wordvec& words) {
   it = child.find(path.at(path.size()-1));
   //Illegal path
   if(it == child.end()) {
-    cout << "no file" << endl;
+    cout << "cat: " << path[path.size()-1] << ": No such file or directory" << endl;
     return;
   }
   file_ptr = child[path.at(path.size()-1)];
@@ -181,6 +181,18 @@ inode_ptr inode_state::directory_search(const wordvec& input,
 }
 
 void inode_state::list(const wordvec& path) {
+  if(path.size() == 0) {
+    cout << cwd->name;
+  }
+  for (auto &path_elem : path) {
+    if (path_elem == ".") {
+      cout << cwd->name;
+    } else {
+      cout << "/" << path_elem;
+    }
+  }
+  cout << ":" << endl;
+
   inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
@@ -196,8 +208,8 @@ void inode_state::list(const wordvec& path) {
   cout << dotdot->get_inode_nr() << "\t" << dotdot->get_higher().size() + dotdot->get_lower().size() << " ../ " << endl;
   */
 
-  for(auto const &pair:parent) {
-    string name = pair.first;
+  for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
+    string name = pair->first;
     inode_ptr par = parent[name].lock();
     cout<< "     "  <<par->get_inode_nr()<<"       "<<par->get_lower().size()+2 << "  " << name << endl;
   }
@@ -208,7 +220,7 @@ void inode_state::list(const wordvec& path) {
       cout <<"     "<< children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
-      cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() << "  " << name << endl;
+      cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() + 2<< "  " << name << endl;
     }
   }
 }
@@ -228,8 +240,8 @@ void inode_state::listr(const wordvec& path) {
   }
   map<string, inode_wk_ptr> parent = curr->get_higher();
   map<string, inode_ptr> children = curr->get_lower();
-  for(auto const &pair:parent) {
-    string name = pair.first;
+  for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
+    string name = pair->first;
     inode_ptr par = parent[name].lock();
     cout<<"     " << par->get_inode_nr() << "       " << par->get_lower().size() + 2 << "  " << name <<  endl;
   }
@@ -239,7 +251,7 @@ void inode_state::listr(const wordvec& path) {
       cout<<"     " << children[name]->get_inode_nr() << "       " << children[name]->contents->size() << "  " << name << endl;
     } else {
       map<string, inode_ptr> children2 = children[name]->get_lower();
-      cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() << "  " << name << endl;
+      cout <<"     "<< children[name]->get_inode_nr() << "       " << children2.size() + 2 << "  " << name << endl;
     }
   }
 
@@ -255,6 +267,10 @@ void inode_state::listr(const wordvec& path) {
 }
 
 void inode_state::print_working_directory() {
+  if(cwd == root) {
+    cout << root->name << endl;
+    return;
+  }
   stack<string> path;
   path.push(cwd->name);
   inode_ptr curr = cwd;
@@ -263,11 +279,12 @@ void inode_state::print_working_directory() {
     curr = parent["../"].lock();
     path.push(curr->name);
   }
+  string add = "";
   while(!path.empty()) {
-    cout << path.top();
+    add += path.top();
     path.pop();
   }
-  cout << endl;
+  cout << add.substr(0,add.size()-1) << endl;
 }
 
 void inode_state::remove_here(const wordvec& path) {
