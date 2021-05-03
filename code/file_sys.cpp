@@ -196,7 +196,9 @@ void inode_state::list(const wordvec& path) {
   cout << ":" << endl;
   */
   inode_ptr curr;
-  if(path[0] == "/") {
+  if(path.size() == 0) {
+    curr = cwd;
+  } else if(path[0] == "/") {
     curr = root;
   } else {
     curr = directory_search(path, cwd, false);
@@ -214,18 +216,20 @@ void inode_state::list(const wordvec& path) {
       cout << "Doesn't exist " << endl;
     }
   }
-
-  if(curr == root) {
-    cout << root->name;
+  
+  if(path.size() == 0) {
+    string header = cwd->name.substr(0,cwd->name.size()-1);
+    if(header == "/") {
+      cout << header;
+    } else {
+      cout << "/" << header;
+    }
+  } else if(path.size() == 1) {
+    cout << path[0];
   } else {
     for(auto &path_elem:path) {
-      if(path_elem == ".") {
-        cout << "/"<< cwd->name.substr(0,cwd->name.size()-1);
-      } else {
-        cout << "/"<< path_elem;
-      }
+      cout << "/"<< path_elem;
     }
-    //cout << "/" << curr->name << ":" << endl;
   }
   cout << ":"<<endl;
   

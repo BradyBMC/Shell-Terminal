@@ -85,7 +85,7 @@ void fn_ls (inode_state& state, const wordvec& words) {
        names = split(words[1],"/");
      }
    } else {
-     names.push_back(".");
+       //names.push_back(".");
    }
 
    /*
