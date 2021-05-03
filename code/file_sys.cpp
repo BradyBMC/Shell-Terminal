@@ -143,7 +143,8 @@ void inode_state::print_file(const wordvec& words) {
   it = child.find(path.at(path.size()-1));
   //Illegal path
   if(it == child.end()) {
-    cout << "cat: " << path[path.size()-1] << ": No such file or directory" << endl;
+    cout<<"cat: "<<path[path.size()-1]
+                 <<": No such file or directory"<<endl;
     return;
   }
   file_ptr = child[path.at(path.size()-1)];
@@ -227,11 +228,21 @@ void inode_state::list(const wordvec& path) {
 
 void inode_state::listr(const wordvec& path) {
   wordvec n_path = path;
+  /*
   for (auto &path_elem : path) {
     if (path_elem == ".") { cout << "/";}
     else { cout << "/" << path_elem;};
   }
+  cout << ":" << endl;*/
+
+  if(path.size() == 0) {
+    cout << cwd->name;
+  }
+  for (auto &path_elem : path) {
+    cout<< "/" << path_elem;
+  }
   cout << ":" << endl;
+
 
   inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {

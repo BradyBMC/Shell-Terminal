@@ -89,7 +89,8 @@ void fn_ls (inode_state& state, const wordvec& words) {
 
 void fn_lsr (inode_state& state, const wordvec& words) {
    wordvec names;
-   if(words.size() > 1) {
+   if(words.size() == 1) {
+   } else if(words.size() > 1) {
      names = split(words[1],"/");
    } else {
      names.push_back(".");
