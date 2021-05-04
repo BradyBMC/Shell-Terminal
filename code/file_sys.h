@@ -40,6 +40,7 @@ class inode_state {
       inode_ptr root {nullptr};
       inode_ptr cwd {nullptr};
       string prompt_ {"% "};
+      int errors {0};
    public:
       inode_state (const inode_state&) = delete; // copy ctor
       inode_state& operator= (const inode_state&) = delete; // op=
@@ -57,6 +58,7 @@ class inode_state {
       void rmr(const wordvec& words);
       void remove_here(const wordvec& path);
       void set_prompt(const wordvec& words);
+      int get_errors();
 };
 
 // class inode -

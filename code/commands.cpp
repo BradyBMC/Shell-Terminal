@@ -1,5 +1,4 @@
 // $Id: commands.cpp,v 1.20 2021-01-11 15:52:17-08 - - $
-
 // Evan Clark, Brady Chan
 
 #include "commands.h"
@@ -69,7 +68,24 @@ void fn_echo (inode_state& state, const wordvec& words) {
 }
 
 
-void fn_exit (inode_state& state, const wordvec& words) {
+void fn_exit (inode_state& state, const wordvec& words) {   
+   int given = 0;
+   string deref = "";
+   if(words.size() > 1) {
+     deref = words.at(1);
+     for(int i = 0;i < static_cast<int>(deref.size());i++) {
+       if(isalpha(deref[i])) {
+         given = 127;
+         break;
+       }
+     }
+     if(given != 127) {
+       given = stoi(deref);
+     }
+   } else {
+     given = state.get_errors();
+   }
+   exec::status(given);
    DEBUGF ('c', state);
    DEBUGF ('c', words);
    throw ysh_exit();
