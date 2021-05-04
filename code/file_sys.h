@@ -50,7 +50,8 @@ class inode_state {
       void make_directory(const wordvec& dirname);
       void make_file(const wordvec& words);
       void print_file(const wordvec& words);
-      inode_ptr directory_search(const wordvec& input, inode_ptr curr, bool make);
+      inode_ptr directory_search(const wordvec& input, 
+      inode_ptr curr, bool make);
       void change_directory(const wordvec& dirname);
       void list(const wordvec& path);
       void listr(const wordvec& path);
@@ -184,10 +185,12 @@ class directory: public base_file {
       virtual void remove (const string& filename) override;
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
-      virtual void setup_dir (const inode_ptr& cwd, inode_ptr& parent) override;
+      virtual void setup_dir (const inode_ptr& cwd, 
+      inode_ptr& parent) override;
       virtual map<string,inode_ptr> get_children() override;
       virtual map<string,inode_wk_ptr> get_parent() override;
-      virtual void set_children(const map<string,inode_ptr>& child) override;
+      virtual void set_children(
+      const map<string,inode_ptr>& child) override;
       virtual string get_type() override;
 };
 
