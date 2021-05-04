@@ -251,9 +251,23 @@ void inode_state::list(const wordvec& path) {
 }
 
 void inode_state::listr(const wordvec& path) {
+  cout << "path: ";
+  for (auto word:path){
+    cout << word << " ";
+  }
+  cout << endl;
+  inode_ptr curr;
   wordvec n_path = path;
-
-  inode_ptr curr = directory_search(path, cwd, false);
+  if(path.size() == 0) {
+    curr = cwd;
+  } else if(path[0] == "/" && path.size() == 1) {
+    curr = root;
+    n_path.pop_back();
+  } else {
+    curr = directory_search(path, cwd, false);
+  }
+  //wordvec n_path = path;
+  //inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
     errors++;
     throw file_error("ILLEGAL DIRECTORY PATH");
@@ -264,7 +278,11 @@ void inode_state::listr(const wordvec& path) {
     cout << cwd->name;
   }
   for (auto &path_elem : path) {
-    cout<< "/" << path_elem;
+    if(path_elem != "/") {
+      cout<< "/" << path_elem;
+    }else{
+      cout << "/";
+    }
   }
   cout << ":" << endl;
 
@@ -287,7 +305,7 @@ void inode_state::listr(const wordvec& path) {
       << children2.size() + 2 << "  " << name << endl;
     }
   }
-
+  
   for(auto const &n : children) {
     string name = n.first;
     if (children[name]->type() == "d") {
@@ -297,6 +315,7 @@ void inode_state::listr(const wordvec& path) {
       n_path.pop_back();
     }
   }
+
 }
 
 void inode_state::print_working_directory() {
