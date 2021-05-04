@@ -222,7 +222,8 @@ void inode_state::list(const wordvec& path) {
   cout << ":"<<endl;
   
   if(curr == nullptr) {
-    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    errors++;
+    throw file_error("ILLEGAL DIRECTORY PATH");
     return;
   }
 
