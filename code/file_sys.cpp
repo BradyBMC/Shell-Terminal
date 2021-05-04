@@ -38,12 +38,14 @@ inode_state::inode_state() {
 
 void inode_state::make_directory(const wordvec& dirname) {
   if(dirname.size() == 0) {
-    cout << "No input" << endl;
+    errors++;
+    throw file_error("ILLEGAL DIRECTORY PATH");
     return;
   }
   inode_ptr path = directory_search(dirname, cwd, true);
   if(path == nullptr) {
-    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    errors++;
+    throw file_error("ILLEGAL DIRECTORY PATH");
     return;
   }
   string name = dirname[dirname.size()-1];
@@ -52,13 +54,15 @@ void inode_state::make_directory(const wordvec& dirname) {
   map<string, inode_ptr> :: iterator it;
   it = children.find(name);
   if(it != children.end()) {
-    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    errors++;
+    throw file_error("ILLEGAL DIRECTORY PATH");
     return;
   }
   name = name + "/";
   it = children.find(name);
   if(it != children.end()) {
-    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    errors++;
+    throw file_error("ILLEGAL DIRECTORY PATH");
   }
   inode_ptr n_dir=path->contents->mkdir(name);
   n_dir->contents->setup_dir(n_dir, path);
@@ -74,6 +78,7 @@ void inode_state::change_directory(const wordvec& dirname) {
     if(temp != NULL) {
       cwd = temp;
     } else {
+      errors++;
       throw file_error("No such directory");
     }
   }
@@ -97,7 +102,8 @@ void inode_state::make_file(const wordvec& words) {
   DEBUGF('f', "temp made: " << temp);
   if (temp == nullptr)
   {
-    cout << "ILLEGAL DIRECTORY PATH" << endl;
+    errors++;
+    throw file_error("ILLEGAL DIRECTORY PATH");
     return;
   }
 
@@ -105,6 +111,7 @@ void inode_state::make_file(const wordvec& words) {
   map<string, inode_ptr> children = temp->get_lower();
 
   if (children.find(path.at(path.size()-1) + "/") != children.end()) {
+    errors++;
     throw file_error("Directory with same name already present.");
   }
 
@@ -133,8 +140,9 @@ void inode_state::print_file(const wordvec& words) {
     it = child.find(path.at(path.size()-1));
     //Illegal path
     if(it == child.end()) {
-      cout<<"cat: "<<path[path.size()-1]
-                   <<": No such file or directory"<<endl;
+      errors++;
+      throw file_error("cat: " +path[path.size()-1]
+                   +": No such file or directory");
       return;
     }
     file_ptr = child[path.at(path.size()-1)];
@@ -192,6 +200,7 @@ void inode_state::list(const wordvec& path) {
       children[name]->contents->size() <<"  " << name << endl;
       return;
     } else {
+      errors++;
       throw file_error("Doesn't exist");
     }
   }
@@ -245,6 +254,7 @@ void inode_state::listr(const wordvec& path) {
 
   inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
+    errors++;
     throw file_error("ILLEGAL DIRECTORY PATH");
     return;
   }
