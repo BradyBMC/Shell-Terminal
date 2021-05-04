@@ -159,7 +159,6 @@ void inode_state::print_file(const wordvec& words) {
 
 inode_ptr inode_state::directory_search(const wordvec& input,
                                              inode_ptr curr, bool make){
-  //Does not catch if directory already has name
   int x = make ? 1 : 0;
   for(int i = 0;i < static_cast<int>(input.size()) - x;i++) {
     map<string, inode_wk_ptr> parent = curr->get_higher();
@@ -393,12 +392,6 @@ void inode_state::rmr(const wordvec& path) {
   }
   curr->set_lower(children);
 }
-
-/*
-int inode_state::exit_adder(const wordvec& num) {
-
-  
-}*/
 
 int inode_state::get_errors() {
   return errors;
