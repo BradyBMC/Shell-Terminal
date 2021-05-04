@@ -1,5 +1,7 @@
 // $Id: main.cpp,v 1.11 2020-10-28 11:37:57-07 - - $
 
+// Evan Clark, Brady Chan
+
 #include <cstdlib>
 #include <iostream>
 #include <string>

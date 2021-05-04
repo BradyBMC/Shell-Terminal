@@ -1,4 +1,5 @@
 // $Id: commands.h,v 1.11 2016-01-14 14:45:21-08 - - $
+// Evan Clark, Brady Chan
 
 #ifndef __COMMANDS_H__
 #define __COMMANDS_H__

@@ -1,5 +1,7 @@
 // $Id: file_sys.h,v 1.8 2020-10-22 14:37:26-07 - - $
 
+// Evan Clark, Brady Chan
+
 #ifndef __INODE_H__
 #define __INODE_H__
 
