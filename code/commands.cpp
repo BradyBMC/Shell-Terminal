@@ -1,8 +1,6 @@
 // $Id: commands.cpp,v 1.20 2021-01-11 15:52:17-08 - - $
+// Evan Clark, Brady Chan
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
 #include "commands.h"
 #include "debug.h"
 
@@ -47,7 +45,7 @@ void fn_cat (inode_state& state, const wordvec& words) {
    if (words.size() > 1) {
      state.print_file(words);
    } else {
-     throw command_error("no file provided");
+     throw command_error("No file provided");
    }
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -57,8 +55,6 @@ void fn_cd (inode_state& state, const wordvec& words) {
    wordvec names;
    if(words.size() > 1) {
      names = split(words[1],"/");
-   } else {
-     
    }
    state.change_directory(names);
    DEBUGF ('c', state);
@@ -72,14 +68,7 @@ void fn_echo (inode_state& state, const wordvec& words) {
 }
 
 
-void fn_exit (inode_state& state, const wordvec& words) {
-   /*
-   cout << words[1] << endl;
-   string deref = "";
-   bool a = isalpha(*temp);
-   for(int i = 0;i < words.size();i++) {
-   }*/
-   
+void fn_exit (inode_state& state, const wordvec& words) {   
    int given = 0;
    string deref = "";
    if(words.size() > 1) {
@@ -142,7 +131,7 @@ void fn_make (inode_state& state, const wordvec& words) {
    if (words.size() > 1) {
     state.make_file(words);
    } else {
-    throw command_error("no arguments");
+    throw command_error("No arguments");
    }
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -153,8 +142,7 @@ void fn_mkdir (inode_state& state, const wordvec& words) {
    if(words.size() > 1) {
      names = split(words[1],"/");
    } else {
-     cout << "No name input" << endl;
-     return;
+     throw command_error("No name input");
    }
    //wordvec names = split(words[1], "/");
    state.make_directory(names);
@@ -166,7 +154,7 @@ void fn_prompt (inode_state& state, const wordvec& words) {
    if(words.size() > 1) {
      state.set_prompt(words);
    } else {
-     throw command_error("No arguments givven");
+     throw command_error("No arguments given");
    }
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -183,8 +171,7 @@ void fn_rm (inode_state& state, const wordvec& words) {
    if(words.size() > 1) {
      names = split(words[1],"/");
    } else {
-     cout << "No file name" << endl;
-     return;
+     throw command_error("No file name");
    }
    state.remove_here(names);
    DEBUGF ('c', state);
@@ -196,8 +183,7 @@ void fn_rmr (inode_state& state, const wordvec& words) {
    if(words.size() > 1) {
      names = split(words[1],"/");
    } else {
-     cout << "No file name" << endl;
-     return;
+     throw command_error("No file name");
    }
    state.rmr(names);
    DEBUGF ('c', state);

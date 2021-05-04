@@ -1,5 +1,7 @@
 // $Id: file_sys.cpp,v 1.10 2021-04-10 14:23:40-07 - - $
 
+// Evan Clark, Brady Chan
+
 #include <cassert>
 #include <iostream>
 #include <iterator>
@@ -29,11 +31,9 @@ inode_state::inode_state() {
    root = make_shared<inode>(rut);
    root->name = "/";
    root->contents->setup_dir(root, root);
-   //root->size+=2;
    cwd = root;
    DEBUGF ('i', "root = " << root->name << ", cwd = " << cwd
          << ", prompt = \"" << prompt() << "\"");
-
 }
 
 void inode_state::make_directory(const wordvec& dirname) {
@@ -73,6 +73,8 @@ void inode_state::change_directory(const wordvec& dirname) {
     inode_ptr temp = directory_search(dirname, cwd, false);
     if(temp != NULL) {
       cwd = temp;
+    } else {
+      throw file_error("No such directory");
     }
   }
 }
@@ -92,23 +94,6 @@ void inode_state::make_file(const wordvec& words) {
   }
   
   inode_ptr temp = directory_search(path, cwd, true);
-  /*
-  if (temp == nullptr) {
-    wordvec n_path = path;
-    n_path.pop_back();
-    temp = directory_search(n_path, cwd, false);
-    map<string, inode_ptr> child = temp->get_lower();
-    map<string,inode_ptr>::iterator it;
-    it = child.find(path.at(path.size()-1));
-    //Illegal path
-    if(it == child.end()) {
-      cout << "no file" << endl;
-      return;
-    }
-    temp = child[path.at(path.size()-1)];
-    temp->contents->writefile(n_data);
-  }
-  */
   DEBUGF('f', "temp made: " << temp);
   if (temp == nullptr)
   {
@@ -188,19 +173,6 @@ inode_ptr inode_state::directory_search(const wordvec& input,
 }
 
 void inode_state::list(const wordvec& path) {
-  /*
-  if(path.size() == 0) {
-    cout << cwd->name;
-  }
-  for (auto &path_elem : path) {
-    if (path_elem == ".") {
-      cout << cwd->name;
-    } else {
-      cout << "/" << path_elem;
-    }
-  }
-  cout << ":" << endl;
-  */
   inode_ptr curr;
   if(path.size() == 0) {
     curr = cwd;
@@ -220,7 +192,7 @@ void inode_state::list(const wordvec& path) {
       children[name]->contents->size() <<"  " << name << endl;
       return;
     } else {
-      cout << "Doesn't exist " << endl;
+      throw file_error("Doesn't exist");
     }
   }
   
@@ -244,8 +216,6 @@ void inode_state::list(const wordvec& path) {
     cout << "ILLEGAL DIRECTORY PATH" << endl;
     return;
   }
-
-  
 
   map<string, inode_wk_ptr> parent = curr->get_higher();
   map<string, inode_ptr> children = curr->get_lower();
@@ -272,12 +242,12 @@ void inode_state::list(const wordvec& path) {
 
 void inode_state::listr(const wordvec& path) {
   wordvec n_path = path;
-  /*
-  for (auto &path_elem : path) {
-    if (path_elem == ".") { cout << "/";}
-    else { cout << "/" << path_elem;};
+
+  inode_ptr curr = directory_search(path, cwd, false);
+  if(curr == nullptr) {
+    throw file_error("ILLEGAL DIRECTORY PATH");
+    return;
   }
-  cout << ":" << endl;*/
 
   if(path.size() == 0) {
     cout << cwd->name;
@@ -287,12 +257,6 @@ void inode_state::listr(const wordvec& path) {
   }
   cout << ":" << endl;
 
-
-  inode_ptr curr = directory_search(path, cwd, false);
-  if(curr == nullptr) {
-    cout << "ILLEGAL DIRECTORY PATH" << endl;
-    return;
-  }
   map<string, inode_wk_ptr> parent = curr->get_higher();
   map<string, inode_ptr> children = curr->get_lower();
   for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
@@ -373,10 +337,8 @@ void inode_state::set_prompt(const wordvec& words) {
   string new_prompt{""};
   auto word = ++words.cbegin();
   for (; word != words.cend(); ++word) {
-    //new_prompt = new_prompt + static_cast<string>(word);
-    new_prompt.append(*word);
+    new_prompt.append(*word + " ");
   }
-  new_prompt.append(" ");
   prompt_ = new_prompt;
 }
 
@@ -499,11 +461,6 @@ string base_file::get_type() {
   throw file_error("is a " + error_file_type());
 }
 
-/*
-void base_file::increment() {
-  throw file_error("is a " + error_file_type());
-}*/
-
 
 
 string plain_file::get_type() {
@@ -559,10 +516,6 @@ inode_ptr directory::mkdir (const string& dirname) {
 }
 
 inode_ptr directory::mkfile (const string& filename) {
-   /*
-   DEBUGF ('i', filename);
-   return nullptr;
-   */
   inode_ptr file_ptr = make_shared<inode>(file_type::PLAIN_TYPE);
   file_ptr->set_name(filename);
   DEBUGF('i', filename);
