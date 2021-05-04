@@ -253,7 +253,15 @@ void inode_state::list(const wordvec& path) {
 void inode_state::listr(const wordvec& path) {
   wordvec n_path = path;
 
-  inode_ptr curr = directory_search(path, cwd, false);
+  //inode_ptr curr = directory_search(path, cwd, false);
+  inode_ptr curr;
+  if(path.size() == 0) {
+    curr = cwd;
+  } else if(path[0] == "/") {
+    curr = root;
+  } else {
+    curr = directory_search(path, cwd, false);
+  }
   if(curr == nullptr) {
     errors++;
     throw file_error("ILLEGAL DIRECTORY PATH");
