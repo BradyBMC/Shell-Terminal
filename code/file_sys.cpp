@@ -250,12 +250,55 @@ void inode_state::list(const wordvec& path) {
   }
 }
 
+void inode_state::print_recursive(inode_ptr curr, wordvec path) {
+  wordvec n_path = path;
+  for (auto &path_elem : path) {
+    if(path_elem != "/") {
+      cout<< "/" << path_elem;
+    }else if(path.size() == 1){
+      cout << "/";
+    }
+  }
+  cout << ":" << endl;
+  map<string, inode_wk_ptr> parent = curr->get_higher();
+  map<string, inode_ptr> children = curr->get_lower();
+  for(auto pair = parent.rbegin();pair != parent.rend();pair++) {
+    string name = pair->first;
+    inode_ptr par = parent[name].lock();
+    cout<<"     " << par->get_inode_nr() << setw(8) 
+    << par->get_lower().size() + 2 << "  " << name <<  endl;
+  }
+  for(auto const &pair:children) {
+    string name = pair.first;
+    if(children[name]->type() == "p") {
+      cout<< "     " << children[name]->get_inode_nr() << setw(8) 
+      << children[name]->contents->size() <<"  " << name << endl;
+    } else {
+      map<string, inode_ptr> children2 = children[name]->get_lower();
+      cout <<"     "<< children[name]->get_inode_nr() << setw(8) 
+      << children2.size() + 2 << "  " << name << endl;
+    }
+  }
+  
+  for(auto const &n : children) {
+    string name = n.first;
+    if (children[name]->type() == "d") {
+      wordvec temp = split(name, "/");
+      n_path.push_back(temp.at(0));
+      print_recursive(n.second, n_path);
+      n_path.pop_back();
+    }
+  }
+}
+
 void inode_state::listr(const wordvec& path) {
+  /*
   cout << "path: ";
   for (auto word:path){
     cout << word << " ";
   }
-  cout << endl;
+  */
+  //cout << endl;
   inode_ptr curr;
   wordvec n_path = path;
   if(path.size() == 0) {
@@ -266,6 +309,7 @@ void inode_state::listr(const wordvec& path) {
   } else {
     curr = directory_search(path, cwd, false);
   }
+  
   //wordvec n_path = path;
   //inode_ptr curr = directory_search(path, cwd, false);
   if(curr == nullptr) {
@@ -273,6 +317,9 @@ void inode_state::listr(const wordvec& path) {
     throw file_error("ILLEGAL DIRECTORY PATH");
     return;
   }
+
+  print_recursive(curr, path);
+  return;
 
   if(path.size() == 0) {
     cout << cwd->name;
