@@ -406,6 +406,16 @@ void inode_state::rmr(const wordvec& path) {
   curr->set_lower(children);
 }
 
+/*
+int inode_state::exit_adder(const wordvec& num) {
+
+  
+}*/
+
+int inode_state::get_errors() {
+  return errors;
+}
+
 inode::inode(file_type type): inode_nr (next_inode_nr++) {
    switch (type) {
       case file_type::PLAIN_TYPE:
